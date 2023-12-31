@@ -19,7 +19,12 @@ class ClientView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
-        pass
+        if pk:
+            client = shortcuts.object_is_exist(pk, models.Client, exception="Client Not Found")
+            serializer = serializers.ClientSerializer(client)
+            return Response(serializer.data)
+        clients = models.Client.objects.all()
+        serializer = serializers.ClientSerializer(clients, many=True)
 
     def patch(self, request):
         is_client = shortcuts.is_client(request)
@@ -31,3 +36,8 @@ class ClientView(APIView):
                 return Response(serializer.data)
             else:
                 return Response(serializer.errors)
+        return Response({'Error' : 'Only Clients can update their accounts data here'})
+
+class AllUsersView(APIView):
+    permission_classes = [IsAuthenticated]
+    
