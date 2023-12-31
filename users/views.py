@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from . import serializers
 from rest_framework.response import Response
@@ -40,4 +39,3 @@ class ClientView(APIView):
 
 class AllUsersView(APIView):
     permission_classes = [IsAuthenticated]
-    
