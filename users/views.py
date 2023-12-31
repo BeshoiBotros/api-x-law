@@ -39,3 +39,10 @@ class ClientView(APIView):
 
 class AllUsersView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None):
+        if pk:
+            user = shortcuts.object_is_exist(pk, models.CustomUser, exception="user Not Found")
+            serializer = serializers.ClientSerializer(user)
+            return Response(serializer.data)
+        
