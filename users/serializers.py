@@ -20,8 +20,11 @@ class ClientSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'password', 'first_name', 'last_name', 'email', 'is_client', 'is_lawyer']
 
     def validate(self, attrs):
-        data  = super().validate(attrs)
-        email = data['email']
+        try:
+            data  = super().validate(attrs)
+            email = data['email']
+        except:
+            email = None
         if emailAlreadyExist(email):
             raise serializers.ValidationError({'error' : 'Email already exist'})
         return data
