@@ -1,5 +1,6 @@
 from users import models
 from rest_framework.exceptions import ValidationError
+from django.contrib.auth import get_user_model
 
 def is_client(request):
     try:
@@ -16,3 +17,9 @@ def object_is_exist(pk, model, exception="object not found"):
         return model.objects.get(pk=pk)
     except model.DoesNotExist:
         raise ValidationError({'Error' : f'{exception}'})
+    
+
+User = get_user_model()
+
+def emailAlreadyExist(email):
+    return User.objects.filter(email=email).exists()

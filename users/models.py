@@ -47,3 +47,4 @@ class Lawyer(CustomUser):
 class LawyerProfile(models.Model):
     lawyer = models.ForeignKey(Lawyer, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='profiles/', blank=True, null=True)
+

@@ -1,21 +1,26 @@
 # from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from . import models
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
-
-def emailAlreadyExist(email):
-    return User.objects.filter(email=email).exists()
+from XLaw.shortcuts import emailAlreadyExist
 
 
 class CustomUserEmailSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     as_lawyer = serializers.BooleanField(required=True)
 
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        email = data.get('email')  # Using get to avoid KeyError
+        
+        if emailAlreadyExist(email):
+            raise serializers.ValidationError({'email': 'Email already exists'})
+        
+        return data
+
+    
 class CustomUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    email = serializers.EmailField(required=True, read_only=True)
+    email = serializers.EmailField(read_only=True)
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
     is_client = serializers.BooleanField(read_only=True)
@@ -29,7 +34,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         data = super().validate(attrs)
         email = data.get('email')  # Using get to avoid KeyError
         
-        if email and emailAlreadyExist(email):
+        if emailAlreadyExist(email):
             raise serializers.ValidationError({'error': 'Email already exists'})
         
         return data
@@ -37,9 +42,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class ClientSerializer(CustomUserSerializer):
     class Meta:
         model = models.Client
-        flields = CustomUserSerializer.Meta.fields
+        fields = CustomUserSerializer.Meta.fields
 
 class LawyerSerializer(CustomUserSerializer):
     class Meta:
         model = models.Lawyer
-        flields = CustomUserSerializer.Meta.fields
+        fields = CustomUserSerializer.Meta.fields
