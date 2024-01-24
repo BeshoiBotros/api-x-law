@@ -7,8 +7,9 @@ from . import models
 from django.core.mail import send_mail
 import jwt
 from XLaw import settings
+from rest_framework import status
 
-class CustomUserEmail(APIView):
+class CustomUserEmail(APIView): # for making URLs to confirm emails
     def post(self, request):
         serializer = serializers.CustomUserEmailSerializer(data=request.data)
         for_who = None
@@ -27,7 +28,32 @@ class CustomUserEmail(APIView):
                 validate_data.get('email'),
                 fail_silently=False,
             )
-            return Response({'message' : 'We are sending email confermation right now.'})
+            return Response({'message' : 'We are sending email confermation right now.'}, status=status.HTTP_200_OK)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class ClientRegistration(APIView):
+    def post(self, request, token):
+        paylod = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        user_email = paylod['email']
+        serializer_data = request.data.copy()
+        serializer_data['email'] = user_email
+        serializer = serializers.ClientSerializer(data=serializer_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message' : 'successfully registration'}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class LawyerRegistration(APIView):
+    def post(self, request, token):
+        paylod = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        user_email = paylod['email']
+        serializer_data = request.data.copy()
+        serializer_data['email'] = user_email
+        serializer = serializers.LawyerSerializer(data=serializer_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message' : 'successfully registration'}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

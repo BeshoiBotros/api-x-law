@@ -15,7 +15,7 @@ class CustomUserEmailSerializer(serializers.Serializer):
 
 class CustomUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    email = serializers.EmailField(required=True)
+    email = serializers.EmailField(required=True, read_only=True)
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
     is_client = serializers.BooleanField(read_only=True)

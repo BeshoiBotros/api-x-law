@@ -3,6 +3,7 @@ from . import views
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 urlpatterns = [
-    path('client/confirm-email/<str:token>/'), # for send email confirmation as client
-    path('lawyer/confirm-email/<str:token>/'), # for send email confirmation as lawyer
+    path('send-email-confirmation/', views.CustomUserEmail.as_view()), # for send email confirmation as client or Lawyer
+    path('client/confirm-email/<str:token>/', views.ClientRegistration.as_view()),
+    path('lawyer/confirm-email/<str:token>/', views.LawyerRegistration.as_view()),
 ]
