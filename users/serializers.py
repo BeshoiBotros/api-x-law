@@ -9,6 +9,10 @@ def emailAlreadyExist(email):
     return User.objects.filter(email=email).exists()
 
 
+class CustomUserEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    as_lawyer = serializers.BooleanField(required=True)
+
 class CustomUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     email = serializers.EmailField(required=True)
@@ -16,7 +20,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(required=True)
     is_client = serializers.BooleanField(read_only=True)
     is_lawyer = serializers.BooleanField(read_only=True)
-    
+
     class Meta:
         model = models.CustomUser  
         fields = ['id', 'username', 'password', 'first_name', 'last_name', 'email', 'is_client', 'is_lawyer']
@@ -29,3 +33,13 @@ class CustomUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'error': 'Email already exists'})
         
         return data
+
+class ClientSerializer(CustomUserSerializer):
+    class Meta:
+        model = models.Client
+        flields = CustomUserSerializer.Meta.fields
+
+class LawyerSerializer(CustomUserSerializer):
+    class Meta:
+        model = models.Lawyer
+        flields = CustomUserSerializer.Meta.fields
