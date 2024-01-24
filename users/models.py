@@ -43,3 +43,7 @@ class Lawyer(CustomUser):
 
     def __str__(self):
         return super().username
+
+class LawyerProfile(models.Model):
+    lawyer = models.ForeignKey(Lawyer, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='profiles/', blank=True, null=True)

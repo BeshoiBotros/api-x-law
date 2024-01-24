@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'users',
     'subscribes',
+    'organizations',
+    'cases',
     'rest_framework_simplejwt.token_blacklist',
 ]
 
