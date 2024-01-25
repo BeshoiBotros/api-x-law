@@ -26,3 +26,9 @@ def emailAlreadyExist(email):
 
 def token_is_exist(token):
     return UsersModels.VerifyToken.objects.filter(token=token).exists()
+
+def check_permission(permission_name, request):
+    for group in request.user.groups.all():
+        if group.permissions.filter(codename = permission_name):
+            return True
+    return False

@@ -66,6 +66,11 @@ class LawyerRegistration(APIView):
         serializer_data = request.data.copy()
         serializer_data['email'] = user_email
         serializer = serializers.LawyerSerializer(data=serializer_data)
+        verify_token_serializer = serializers.VerifyToken(data={'token': token})
+        if verify_token_serializer.is_valid():
+            verify_token_serializer.save()
+        else:
+            return Response(verify_token_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         if serializer.is_valid():
             client_instance = serializer.save()
             if not is_assestant:
