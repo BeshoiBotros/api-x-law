@@ -16,6 +16,7 @@ class CustomUserEmail(APIView): # for making URLs to confirm emails
         for_who = None
         if serializer.is_valid():
             validate_data = serializer.validated_data
+            
             if validate_data.get('as_lawyer'):
                 for_who = 'lawyer'
             else:
@@ -37,9 +38,15 @@ class ClientRegistration(APIView):
     def post(self, request, token):
         paylod = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         user_email = paylod['email']
-        serializer_data = request.data.copy()
-        serializer_data['email'] = user_email
+        print(user_email)
+        serializer_data = {'email': user_email, **request.data}
         serializer = serializers.ClientSerializer(data=serializer_data)
+        verify_token_serializer = serializers.VerifyToken(data={'token': token})
+        if verify_token_serializer.is_valid():
+            verify_token_serializer.save()
+        else:
+            return Response(verify_token_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
         if serializer.is_valid():
             client_instance = serializer.save()
             client_group, created = Group.objects.get_or_create(name='Client')
