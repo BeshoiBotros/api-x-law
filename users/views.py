@@ -81,4 +81,16 @@ class LawyerRegistration(APIView):
             return Response({'message' : 'successfully registration'}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
+class CustomUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, pk=None):
+        pass
+
+    def patch(self):
+        pass
+
+    def delete(self):
+        pass
+

@@ -2,15 +2,6 @@ from users import models as UsersModels
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 
-def is_client(request):
-    try:
-        user = UsersModels.CustomUser.objects.get(pk=request.user.pk)
-        if user.is_client:
-            return True
-        else:
-            return False
-    except UsersModels.Client.DoesNotExist:
-        raise ValidationError({'Error' : 'User Not Found'})
     
 def object_is_exist(pk, model, exception="object not found"):
     try:
