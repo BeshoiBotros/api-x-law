@@ -10,4 +10,6 @@ urlpatterns = [
     path('lawyer/confirm-email/<str:token>/', views.LawyerRegistration.as_view()),
     path('operations/<int:pk>/', views.CustomUserView.as_view()),
     path('operations/', views.CustomUserView.as_view()),
+    path('profiles/profile/<int:pk>/', views.LawyerProfileView.as_view()),
+    path('profiles/profile/', views.LawyerProfileView.as_view()),
 ]

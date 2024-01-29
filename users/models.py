@@ -53,7 +53,7 @@ class Lawyer(CustomUser):
         return super().username
 
 class LawyerProfile(models.Model):
-    lawyer = models.ForeignKey(Lawyer, on_delete=models.CASCADE)
+    lawyer = models.OneToOneField(Lawyer, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='profiles/', blank=True, null=True, default='profiles/default-user.jpg')
 
 class VerifyToken(models.Model):

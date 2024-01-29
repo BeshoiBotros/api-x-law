@@ -111,11 +111,20 @@ class CustomUserView(APIView):
 class LawyerProfileView(APIView):
     permission_classes = [ IsAuthenticated ]
 
+    def get(self, request, pk=None):
+        if pk:
+            instance = shortcuts.object_is_exist(pk=pk, model=models.LawyerProfile, exception="that profile not found")
+            serializer = serializers.LawyerProfileSerializer(instance)
+            return Response(serializer.data)
+        queryset = models.LawyerProfile.objects.all()
+        serializer = serializers.LawyerProfileSerializer(queryset, many=True)
+        return Response(serializer.data)
+
     def patch(self, request):
         is_lawyer = request.user.is_lawyer
         print(is_lawyer)
         if is_lawyer:
-            lawyer_profile_instance = models.LawyerProfile(lawyer = request.user.pk)
+            lawyer_profile_instance = models.LawyerProfile.objects.get(lawyer = request.user.pk)
             lawyer_profile_serializer = serializers.LawyerProfileSerializer(instance=lawyer_profile_instance, data=request.data)
             if lawyer_profile_serializer.is_valid():
                 lawyer_profile_serializer.save()
