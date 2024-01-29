@@ -93,7 +93,7 @@ class CustomUserView(APIView):
             return Response(serializer.data)
         queryset = models.CustomUser.objects.filter(is_staff=False)
         serializer = serializers.CustomUserSerializer(queryset, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request):
         user = request.user
@@ -106,5 +106,21 @@ class CustomUserView(APIView):
     def delete(self, request):
         user = request.user
         user.is_active = False
-        return Response({"message":"user has been deleted successfully"})
+        return Response({"message":"user has been deleted successfully"}, status=status.HTTP_200_OK)
+
+class LawyerProfileView(APIView):
+    permission_classes = [ IsAuthenticated ]
+
+    def patch(self, request):
+        is_lawyer = request.user.is_lawyer
+        print(is_lawyer)
+        if is_lawyer:
+            lawyer_profile_instance = models.LawyerProfile(lawyer = request.user.pk)
+            lawyer_profile_serializer = serializers.LawyerProfileSerializer(instance=lawyer_profile_instance, data=request.data)
+            if lawyer_profile_serializer.is_valid():
+                lawyer_profile_serializer.save()
+                return Response(lawyer_profile_serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(lawyer_profile_serializer.errors)
+        return Response({"message" : "you are not lawyer, which mean that can not have profile."})
 

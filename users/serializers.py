@@ -60,3 +60,9 @@ class VerifyToken(serializers.ModelSerializer):
         if token_is_exist(token):
             raise serializers.ValidationError({'error':'Can not use expired token!'})
         return data
+    
+class LawyerProfileSerializer(serializers.ModelSerializer):
+    lawyer = LawyerSerializer()
+    class Meta:
+        model = models.LawyerProfile
+        fields = ['id', 'image', 'lawyer']
