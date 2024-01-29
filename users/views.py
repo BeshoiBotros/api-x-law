@@ -9,6 +9,7 @@ import jwt
 from XLaw import settings
 from rest_framework import status
 from django.contrib.auth.models import Group
+import uuid
 
 class CustomUserEmail(APIView): # for making URLs to confirm emails
     def post(self, request):
@@ -21,7 +22,7 @@ class CustomUserEmail(APIView): # for making URLs to confirm emails
                 for_who = 'lawyer'
             else:
                 for_who = 'client'
-            confirmation_token = jwt.encode({'email' : validate_data.get('email')}, settings.SECRET_KEY, algorithm='HS256')
+            confirmation_token = jwt.encode({'email' : validate_data.get('email'), 'uuid': str(uuid.uuid4())}, settings.SECRET_KEY, algorithm='HS256')
             url_confirmation = f'http://127.0.0.1:8000/users/{for_who}/confirm-email/{confirmation_token}/' # we should replace that URL to the frontend url
             send_mail(
                 'Confirm your email for complate the registration',
@@ -85,12 +86,25 @@ class LawyerRegistration(APIView):
 class CustomUserView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, pk=None):
-        pass
+    def get(self, request, pk=None):
+        if pk:
+            instance = shortcuts.object_is_exist(pk=pk, model=models.CustomUser, exception="user does not exist")
+            serializer = serializers.CustomUserSerializer(instance)
+            return Response(serializer.data)
+        queryset = models.CustomUser.objects.filter(is_staff=False)
+        serializer = serializers.CustomUserSerializer(queryset, many=True)
+        return Response(serializer.data)
 
-    def patch(self):
-        pass
+    def patch(self, request):
+        user = request.user
+        serializer = serializers.CustomUserSerializer(instance=user, data=request.data,partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
 
-    def delete(self):
-        pass
+    def delete(self, request):
+        user = request.user
+        user.is_active = False
+        return Response({"message":"user has been deleted successfully"})
 

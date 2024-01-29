@@ -28,11 +28,11 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.CustomUser  
-        fields = ['id', 'username', 'password', 'first_name', 'last_name', 'email', 'is_client', 'is_lawyer']
+        fields = ['id', 'username', 'password', 'first_name', 'last_name', 'email_address', 'is_client', 'is_lawyer']
 
     def validate(self, attrs):
         data = super().validate(attrs)
-        email = data.get('email')  # Using get to avoid KeyError
+        email = data.get('email_address')  # Using get to avoid KeyError
         
         if emailAlreadyExist(email):
             raise serializers.ValidationError({'error': 'Email already exists'})
