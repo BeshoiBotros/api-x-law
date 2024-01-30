@@ -6,6 +6,7 @@ from . import models
 from XLaw import shortcuts
 from rest_framework.response import Response
 from rest_framework import status
+from django.core.mail import send_mail
 
 class SubscribeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -71,13 +72,17 @@ class SubscribeOrderView(APIView):
             return Response({'Message':'you do not have access to perform that action'})
     
     def post(self, request):
-        serializer = serializers.SubscribeOrderSerializer(data=request.data)
-        
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.user.is_lawyer:
+            serializer_data = request.data.copy()
+            serializer_data['companyuser'] = request.user
+            serializer = serializers.SubscribeOrderSerializer(data=serializer_data)
+            if serializer.is_valid():
+                instance = serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message' : 'Only lawyers can perform this action.'})
         
     def patch(self, request, pk):
         can_update = shortcuts.check_permission('change_subscribeorder', request)
@@ -122,7 +127,10 @@ class SubscribeContractView(APIView):
         if can_add:
             serializer = serializers.SubscribeContractSerializer(data=request.data)
             if serializer.is_valid():
-                serializer.save()
+                instance = serializer.save()
+                company_user_email = instance.subscribe_order.companyuser.email
+                # need to complate ----------------------------------------------------------------
+                print(company_user_email)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

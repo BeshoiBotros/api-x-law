@@ -7,7 +7,7 @@ def object_is_exist(pk, model, exception="object not found"):
     try:
         return model.objects.get(pk=pk)
     except model.DoesNotExist:
-        raise ValidationError({'Error' : f'{exception}'})
+        raise ValidationError({'message' : f'{exception}'})
     
 
 User = get_user_model()

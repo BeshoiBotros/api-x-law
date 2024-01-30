@@ -1,3 +1,6 @@
 from django.contrib import admin
+from . import models
 
-# Register your models here.
+admin.site.register(models.Subscribe)
+admin.site.register(models.SubscribeContract)
+admin.site.register(models.SubscribeOrder)
