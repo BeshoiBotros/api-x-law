@@ -4,21 +4,19 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 class CustomUser(AbstractUser):
-    phone_number = models.CharField(max_length=15)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
     is_client = models.BooleanField(default=False)
     is_lawyer = models.BooleanField(default=False)
     class Meta:
         verbose_name = 'CustomUser'
-        
+    def save(self, *args, **kwargs):
+        if not self.pk or not self.password:
+            self.set_password(self.password)
+        super().save(*args, **kwargs)
+            
     def __str__(self):
         return self.username
-    
-    def is_superuser(self):
-        return self.is_superuser
-    
-    def is_stuff(self):
-        return self.is_staff
-    
+
 
 class Client(CustomUser):
 
@@ -28,8 +26,6 @@ class Client(CustomUser):
     def save(self, *args, **kwargs):
         self.is_client = True
         self.is_lawyer = False
-        if not self.pk or not self.password:
-            self.set_password(self.password)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -45,8 +41,6 @@ class Lawyer(CustomUser):
     def save(self, *args, **kwargs):
         self.is_client = False
         self.is_lawyer = True
-        if not self.pk or not self.password:
-            self.set_password(self.password)
         super().save(*args, **kwargs)
 
     def __str__(self):

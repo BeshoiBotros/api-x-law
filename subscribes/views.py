@@ -13,9 +13,10 @@ class SubscribeView(APIView):
     def get(self, request, pk=None):
         if pk:
             subscribe_instance = shortcuts.object_is_exist(pk, models.Subscribe, "subscribe not found")
-            subscribe_serializer = serializers.SubscribeSerializer(subscribe_instance)
-            return Response(subscribe_serializer.data, status=status.HTTP_200_OK)
-        subscribe_queryset = models.Subscribe.objects.all()
+            if subscribe_instance.is_active:
+                subscribe_serializer = serializers.SubscribeSerializer(subscribe_instance)
+                return Response(subscribe_serializer.data, status=status.HTTP_200_OK)
+        subscribe_queryset = models.Subscribe.objects.filter(is_active=True)
         subscribe_serializer = serializers.SubscribeSerializer(subscribe_queryset, many=True)
         return Response(subscribe_serializer.data, status=status.HTTP_200_OK)
 
@@ -26,6 +27,8 @@ class SubscribeView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'message'  : 'you can not perform this action.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -33,10 +36,12 @@ class SubscribeView(APIView):
         can_update = shortcuts.check_permission('change_subscribe', request)
         if can_update:
             instance = shortcuts.object_is_exist(pk, models.Subscribe, "Subscribe not found.")
-            serializer = serializers.SubscribeSerializer(instance=instance,data=request.data)
+            serializer = serializers.SubscribeSerializer(instance=instance,data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'message'  : 'you can not perform this action.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -70,9 +75,9 @@ class SubscribeOrderView(APIView):
         
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
     def patch(self, request, pk):
         can_update = shortcuts.check_permission('change_subscribeorder', request)
@@ -81,20 +86,20 @@ class SubscribeOrderView(APIView):
             serializer = serializers.SubscribeOrderSerializer(instance, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response(serializer.errors)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({'message':'you do not have access to perform that action'})
+            return Response({'message':'you do not have access to perform that action'}, status=status.HTTP_400_BAD_REQUEST)
         
     def delete(self, request, pk):
         can_delete = shortcuts.check_permission('delete_subscribeorder', request)
         if can_delete:
             instance = shortcuts.object_is_exist(pk=pk, model=models.SubscribeOrder)
             instance.delete()
-            return Response({'message' : 'subscribe order has been deleted successfuly'})
+            return Response({'message' : 'subscribe order has been deleted successfuly'}, status=status.HTTP_200_OK)
         else:
-            return Response({'message':'you do not have access to perform that action'})
+            return Response({'message':'you do not have access to perform that action'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SubscribeContractView(APIView):
@@ -108,9 +113,9 @@ class SubscribeContractView(APIView):
             else:
                 queryset = models.SubscribeContract.objects.all()
                 serialzier = serializers.SubscribeContractSerializer(queryset, many=True)
-            return Response(serialzier.data)
+            return Response(serialzier.data, status=status.HTTP_200_OK)
         else:
-            return Response({'message': 'you do not have access to perform that action'})
+            return Response({'message': 'you do not have access to perform that action'}, status=status.HTTP_400_BAD_REQUEST)
     
     def post(self, request):
         can_add = shortcuts.check_permission('add_subscribecontract', request)
@@ -118,9 +123,9 @@ class SubscribeContractView(APIView):
             serializer = serializers.SubscribeContractSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response(serializer.errors)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'message': 'you do not have access to perform that action'})
 
@@ -131,17 +136,17 @@ class SubscribeContractView(APIView):
             serializer = serializers.SubscribeContractSerializer(instance, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response(serializer.errors)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({'message': 'you do not have access to perform that action'})
+            return Response({'message': 'you do not have access to perform that action'}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         can_delete = shortcuts.check_permission('delete_subscribecontract', request)
         if can_delete:
             instance = shortcuts.object_is_exist(pk=pk, model=models.SubscribeContract)
             instance.delete()
-            return Response({'Message': 'subscribe contract has been deleted successfully'})
+            return Response({'Message': 'subscribe contract has been deleted successfully'}, status=status.HTTP_200_OK)
         else:
-            return Response({'Message': 'you do not have access to perform that action'})
+            return Response({'Message': 'you do not have access to perform that action'}, status=status.HTTP_400_BAD_REQUEST)
