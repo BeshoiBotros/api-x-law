@@ -39,8 +39,7 @@ class ClientRegistration(APIView):
     def post(self, request, token):
         paylod = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         user_email = paylod['email']
-        print(user_email)
-        serializer_data = {'email': user_email, **request.data}
+        serializer_data = {**request.data}
         serializer = serializers.ClientSerializer(data=serializer_data)
         verify_token_serializer = serializers.VerifyToken(data={'token': token})
         if verify_token_serializer.is_valid():
@@ -49,7 +48,9 @@ class ClientRegistration(APIView):
             return Response(verify_token_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         if serializer.is_valid():
+            serializer.validated_data['email'] = user_email
             client_instance = serializer.save()
+            client_instance.email = user_email
             client_group, created = Group.objects.get_or_create(name='Client')
             client_instance.groups.add(client_group)
             return Response({'message' : 'successfully registration'}, status=status.HTTP_200_OK)
