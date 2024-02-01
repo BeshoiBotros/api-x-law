@@ -12,3 +12,19 @@ class Organization(models.Model):
     email = models.EmailField(max_length=254, null=True, blank=True)
 
 
+class OrganizatioStuff(models.Model):
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    lawyer = models.ForeignKey(Lawyer, on_delete=models.CASCADE)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    notes = models.TextField(blank=True, null=True)
+    
+class PaymentMethod(models.Model):
+    currency_choices = (('USD', 'United States dollar'), ('EUR', 'the Euro'), ('EGP', 'Egyptian pound'))
+    name = models.CharField(blank=True, null=True)
+    account_number = models.CharField(blank=True, null=True)
+    bank_name = models.CharField(blank=True, null=True)
+    swift_number = models.CharField(blank=True, null=True)
+    currency = models.CharField(choices=currency_choices)
+    discription = models.TextField(blank=True, null=True)

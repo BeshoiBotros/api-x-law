@@ -32,7 +32,7 @@ class SubscribeOrder(models.Model):
     responsibleName = models.CharField(max_length=255)
     responsiblePhone = models.CharField(max_length=15)
     responsibleEmail = models.EmailField(null=True, blank=True)
-    requestStatus = models.CharField(choices=requestStatusChoices, max_length=30, default='تحت الاجراء')
+    requestStatus = models.CharField(choices=requestStatusChoices, max_length=30, default='underProcess')
     statusDiscription = models.TextField(null=True, blank=True)
 
 class SubscribeContract(models.Model):
