@@ -22,9 +22,9 @@ class OrganizatioStuff(models.Model):
     
 class PaymentMethod(models.Model):
     currency_choices = (('USD', 'United States dollar'), ('EUR', 'the Euro'), ('EGP', 'Egyptian pound'))
-    name = models.CharField(blank=True, null=True)
-    account_number = models.CharField(blank=True, null=True)
-    bank_name = models.CharField(blank=True, null=True)
-    swift_number = models.CharField(blank=True, null=True)
-    currency = models.CharField(choices=currency_choices)
+    name = models.CharField(blank=True, null=True, max_length=255)
+    account_number = models.CharField(blank=True, null=True, max_length=255)
+    bank_name = models.CharField(blank=True, null=True, max_length=255)
+    swift_number = models.CharField(blank=True, null=True, max_length=255)
+    currency = models.CharField(choices=currency_choices, max_length = 10)
     discription = models.TextField(blank=True, null=True)

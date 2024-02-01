@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+ALLOWED_HOSTS = ['x-law.future-developers.cloud']
+CSRF_TRUSTED_ORIGINS = ['https://x-law.future-developers.cloud']
 
 # Application definition
 
