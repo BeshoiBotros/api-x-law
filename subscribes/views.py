@@ -63,8 +63,8 @@ class SubscribeOrderView(APIView):
         can_view = shortcuts.check_permission('view_subscribeorder', request)
         
         if pk:
+            instance = shortcuts.object_is_exist(pk=pk, model=models.SubscribeOrder)
             if can_view or (instance.companyuser.pk == request.user.pk):
-                instance = shortcuts.object_is_exist(pk=pk, model=models.SubscribeOrder)
                 serialzier = serializers.SubscribeOrderSerializer(instance)
             else:
                 return Response({'message':'you do not have access to perform that action'})
@@ -165,19 +165,26 @@ class SubscribeOrderView(APIView):
 
 class SubscribeContractView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request, pk=None):
         can_view = shortcuts.check_permission('view_subscribecontract', request)
-        if can_view:
-            if pk:
-                instance = shortcuts.object_is_exist(pk=pk, model=models.SubscribeContract)
+        if pk:
+            instance = shortcuts.object_is_exist(pk=pk, model=models.SubscribeContract)
+            if can_view or (instance.subscribe_order.companyuser.pk == request.user.pk):
                 serialzier = serializers.SubscribeContractSerializer(instance)
             else:
+                return Response({'message': 'you do not have access to perform that action'}, status=status.HTTP_400_BAD_REQUEST)
+
+        else:
+            if can_view:
                 queryset = models.SubscribeContract.objects.all()
                 serialzier = serializers.SubscribeContractSerializer(queryset, many=True)
-            return Response(serialzier.data, status=status.HTTP_200_OK)
-        else:
-            return Response({'message': 'you do not have access to perform that action'}, status=status.HTTP_400_BAD_REQUEST)
-    
+                return Response(serialzier.data, status=status.HTTP_200_OK)
+            else:
+                queryset = models.SubscribeContract.objects.filter(subscribe_order__companyuser__id=request.user.pk)
+                serializer = serializers.SubscribeContractSerializer(queryset, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            
     # def post(self, request):
     #     can_add = shortcuts.check_permission('add_subscribecontract', request)
     #     if can_add:
