@@ -7,6 +7,7 @@ from XLaw import shortcuts
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.mail import send_mail
+from XLaw import settings
 
 class SubscribeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -60,24 +61,38 @@ class SubscribeOrderView(APIView):
 
     def get(self, request, pk=None):
         can_view = shortcuts.check_permission('view_subscribeorder', request)
-        if can_view:
-            if pk:
+        
+        if pk:
+            if can_view or (instance.companyuser.pk == request.user.pk):
                 instance = shortcuts.object_is_exist(pk=pk, model=models.SubscribeOrder)
                 serialzier = serializers.SubscribeOrderSerializer(instance)
             else:
+                return Response({'message':'you do not have access to perform that action'})
+        else:
+            if can_view:
                 queryset = models.SubscribeOrder.objects.all()
                 serialzier = serializers.SubscribeOrderSerializer(queryset, many=True)
-            return Response(serialzier.data)
-        else:
-            return Response({'Message':'you do not have access to perform that action'})
+            else:
+                queryset = models.SubscribeOrder.objects.filter(companyuser = request.user)
+                serialzier = serializers.SubscribeOrderSerializer(queryset, many=True)
+        return Response(serialzier.data)
+        
     
     def post(self, request):
         if request.user.is_lawyer:
             serializer_data = request.data.copy()
             serializer_data['companyuser'] = request.user
             serializer = serializers.SubscribeOrderSerializer(data=serializer_data)
+            validate_data = serializer.validated_data
             if serializer.is_valid():
                 instance = serializer.save()
+                send_mail(
+                    "subscribe order",
+                    "your order is underprocess we will check your data then asking you to complate the contract or cancel it",
+                    settings.XLAW_EMAIL,
+                    [request.user.email],
+                    fail_silently=False,
+                )
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -91,6 +106,27 @@ class SubscribeOrderView(APIView):
             serializer = serializers.SubscribeOrderSerializer(instance, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
+                if instance.requestStatus == "accepted":
+                    subscribe_contract_data = {'subscribe_order' : instance.subscribe}
+                    subscribe_contract_serializer = serializers.SubscribeContractSerializer(data=subscribe_contract_data)
+                    if subscribe_contract_serializer.is_valid():
+                        serializer.save()
+                        send_mail(
+                            "subscribe order",
+                            "your subscribe order has been successfully accepted, please come to us to complate the contract",
+                            settings.XLAW_EMAIL,
+                            [instance.companyuser.email],
+                            fail_silently=False,
+                        )
+                if instance.requestStatus == "rejected" or instance.requestStatus == "other":
+                    send_mail(
+                        "subscribe order",
+                        "your subscribe order has been rejected, please check the discription of subscribe order to know details.",
+                        settings.XLAW_EMAIL,
+                        [instance.companyuser.email],
+                        fail_silently=False,
+                    )
+
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -98,14 +134,34 @@ class SubscribeOrderView(APIView):
             return Response({'message':'you do not have access to perform that action'}, status=status.HTTP_400_BAD_REQUEST)
         
     def delete(self, request, pk):
-        can_delete = shortcuts.check_permission('delete_subscribeorder', request)
-        if can_delete:
-            instance = shortcuts.object_is_exist(pk=pk, model=models.SubscribeOrder)
-            instance.delete()
-            return Response({'message' : 'subscribe order has been deleted successfuly'}, status=status.HTTP_200_OK)
+        # to cancel the subscribe order
+        instance = shortcuts.object_is_exist(pk=pk, model=models.SubscribeOrder)
+        if instance.companyuser.pk == request.user.pk:
+            instance.requestStatus = "canceled"
+            instance.save()
+            send_mail(
+                "subscribe order",
+                "your subscribe order has been canceled",
+                settings.XLAW_EMAIL,
+                [instance.companyuser.email],
+                fail_silently=False,
+            )
+            return Response({'message' : 'subscribe order has been canceled successfuly'}, status=status.HTTP_200_OK)
         else:
-            return Response({'message':'you do not have access to perform that action'}, status=status.HTTP_400_BAD_REQUEST)
-
+            can_delete = shortcuts.check_permission('delete_subscribeorder', request)
+            if can_delete:
+                instance.requestStatus = "canceled"
+                instance.save()
+                send_mail(
+                    "subscribe order",
+                    "your subscribe order has been canceled",
+                    settings.XLAW_EMAIL,
+                    [instance.companyuser.email],
+                    fail_silently=False,
+                )
+                return Response({'message' : 'subscribe order has been canceled successfuly'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'message' : 'you can only cancel your subscribe orders.'})
 
 class SubscribeContractView(APIView):
     permission_classes = [IsAuthenticated]
@@ -122,20 +178,20 @@ class SubscribeContractView(APIView):
         else:
             return Response({'message': 'you do not have access to perform that action'}, status=status.HTTP_400_BAD_REQUEST)
     
-    def post(self, request):
-        can_add = shortcuts.check_permission('add_subscribecontract', request)
-        if can_add:
-            serializer = serializers.SubscribeContractSerializer(data=request.data)
-            if serializer.is_valid():
-                instance = serializer.save()
-                company_user_email = instance.subscribe_order.companyuser.email
-                # need to complate ----------------------------------------------------------------
-                print(company_user_email)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'message': 'you do not have access to perform that action'})
+    # def post(self, request):
+    #     can_add = shortcuts.check_permission('add_subscribecontract', request)
+    #     if can_add:
+    #         serializer = serializers.SubscribeContractSerializer(data=request.data)
+    #         if serializer.is_valid():
+    #             instance = serializer.save()
+    #             company_user_email = instance.subscribe_order.companyuser.email
+    #             # need to complate ----------------------------------------------------------------
+    #             print(company_user_email)
+    #             return Response(serializer.data, status=status.HTTP_200_OK)
+    #         else:
+    #             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    #     else:
+    #         return Response({'message': 'you do not have access to perform that action'})
 
     def patch(self, request, pk):
         can_update = shortcuts.check_permission('change_subscribecontract', request)

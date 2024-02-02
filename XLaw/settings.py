@@ -167,3 +167,5 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = 'beshoibotros111@gmail.com'
 EMAIL_HOST_PASSWORD = 'gkvp ywxh jpou jxko'
 EMAIL_USE_TLS = True
+
+XLAW_EMAIL = "xlaw@gmail.com"
