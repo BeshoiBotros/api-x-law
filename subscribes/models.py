@@ -22,7 +22,7 @@ class Subscribe(models.Model):
 class SubscribeOrder(models.Model):
     requestStatusChoices = (('underProcess', 'تحت الاجراء'), ('accepted', 'مقبول'), ('rejected', 'مرفوض'), ('canceled', 'ملغي'), ('other', 'اخرى'))
     subscribe = models.ForeignKey(Subscribe, on_delete=models.CASCADE)
-    companyuser = models.ForeignKey(Lawyer, on_delete=models.CASCADE,null=True, blank=True)
+    companyuser = models.OneToOneField(Lawyer, on_delete=models.CASCADE,null=True, blank=True)
     companyName = models.CharField(max_length=255)
     companyAddres = models.TextField(null=False, blank=False)
     companyNo = models.CharField(max_length=200, blank=True,default='')

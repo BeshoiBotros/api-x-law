@@ -121,7 +121,7 @@ class SubscribeOrderView(APIView):
                 if instance.requestStatus == "rejected" or instance.requestStatus == "other":
                     send_mail(
                         "subscribe order",
-                        "your subscribe order has been rejected, please check the discription of subscribe order to know details.",
+                        "your subscribe order has been rejected, please check the description of subscribe order to know details.",
                         settings.XLAW_EMAIL,
                         [instance.companyuser.email],
                         fail_silently=False,
@@ -207,6 +207,30 @@ class SubscribeContractView(APIView):
             serializer = serializers.SubscribeContractSerializer(instance, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
+                if (instance.subscribe_contract_status == "paied") and (instance.is_active == True) or (instance.is_active == True):
+                    send_mail(
+                        "subscribe contract",
+                        "your subscribe order has been successfully accepted, please check the description of subscribe contract to know details.",
+                        settings.XLAW_EMAIL,
+                        [instance.subscribe_order.companyuser.email],
+                        fail_silently=False,
+                    )
+                if instance.subscribe_contract_status == "rejected" or instance.subscribe_contract_status == "other":
+                    send_mail(
+                        "subscribe contract",
+                        "your subscribe contract has been rejected, please check the description  of subscribe contract to know details.",
+                        settings.XLAW_EMAIL,
+                        [instance.subscribe_order.companyuser.email],
+                        fail_silently=False,
+                    )
+                if instance.subscribe_contract_status == "unpaied":
+                    send_mail(
+                        "subscribe contract",
+                        "your subscribe contract is unpaid, please make sure to paid then upload the reciept file to activate your Organization.",
+                        settings.XLAW_EMAIL,
+                        [instance.subscribe_order.companyuser.email],
+                        fail_silently=False,
+                    )
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -215,9 +239,47 @@ class SubscribeContractView(APIView):
 
     def delete(self, request, pk):
         can_delete = shortcuts.check_permission('delete_subscribecontract', request)
-        if can_delete:
+        if can_delete or (instance.subscribe_order.companyuser.pk == request.user.pk):
             instance = shortcuts.object_is_exist(pk=pk, model=models.SubscribeContract)
-            instance.delete()
-            return Response({'Message': 'subscribe contract has been deleted successfully'}, status=status.HTTP_200_OK)
+            instance.subscribe_contract_status = 'canceled'
+            instance.save()
+            send_mail(
+                "subscribe contract",
+                "your subscribe contract has been canceled",
+                settings.XLAW_EMAIL,
+                [instance.subscribe_order.companyuser.email],
+                fail_silently=False,
+            )
+            return Response({'message': 'subscribe contract has been canceled successfully'}, status=status.HTTP_200_OK)
         else:
-            return Response({'Message': 'you do not have access to perform that action'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'you can only cancel your contracts.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+class SubscribeContractDetails(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None):
+        can_view = shortcuts.check_permission('view_subscribecontractdetails', request)
+        if pk:
+            instance = shortcuts.object_is_exist(pk, models.SubscribeContractDetails, "subscribe contract details not found")
+            if can_view or (instance.subscribe_contract.subscribe_order.companyuser.pk == request.user.pk):
+                pass
+            else:
+                return Response({'message' : 'only admins and contract owners can view this.'})
+        else:
+            if can_view:
+                queryset = models.SubscribeContractDetails.objects.all()
+                serializer = serializers.SubscribeContractDetailsSerializer(queryset, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                queryset = models.SubscribeContractDetails.objects.filter(subscribe_contract__subscribe_order__companyuser__pk = request.user.pk)
+                
+
+    def post(self, request):
+        pass
+
+    def patch(self, request, pk):
+        pass
+
+    def delete(self, request, pk):
+        pass

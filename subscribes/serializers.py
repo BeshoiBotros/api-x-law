@@ -17,3 +17,7 @@ class SubscribeOrderSerializer(serializers.ModelSerializer):
         model = models.SubscribeOrder
         fields = '__all__'
 
+class SubscribeContractDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.SubscribeContractDetails
+        fields = '__all__'
