@@ -17,7 +17,6 @@ class SubscribeOrderSerializer(serializers.ModelSerializer):
         model = models.SubscribeOrder
         fields = '__all__'
 
-class SubscribeContractDetailsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.SubscribeContractDetails
-        fields = '__all__'
+class SubscribeContractDetailsSerializer(serializers.Serializer):
+    reciept_file = serializers.FileField(required = True)
+    nums_of_users = serializers.IntegerField(required = True)

@@ -40,21 +40,20 @@ class SubscribeContract(models.Model):
     def get_default_price(self):
         return self.subscribe_order.subscribe.price
     
+    def get_default_stuff(self):
+        return self.subscribe_order.subscribe.nums_of_stuff
+
     subscribe_order = models.ForeignKey(SubscribeOrder, models.CASCADE)
     subscribeContractStatusChoices = (('underProcess', 'جاري التعاقد'), ('paied', 'مدفوع'), ('unpaied', 'غير مدفوع'), ('canceled', 'ملغي'), ('rejected', 'مرفوض'), ('other', 'اخرى'))
     status_discription = models.TextField(null=True, blank=True)
     subscribe_contract_status = models.CharField(choices=subscribeContractStatusChoices, max_length=30, default='underProcess')
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
+    nums_of_users = models.IntegerField(default = get_default_stuff)
+    reciept_file = models.FileField(upload_to='recipet_files/', blank=True, null=True)
     paied_amount = models.FloatField(default=get_default_price)
     contract_file = models.FileField(upload_to='contractDiscription/', null=True, blank=True)
     contract_discription = models.TextField(null=True, blank=True)
     contract_aproval = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
 
-
-
-class SubscribeContractDetails(models.Model):
-    subscribe_contract = models.OneToOneField(SubscribeContract, on_delete=models.CASCADE)
-    nums_of_users = models.IntegerField()
-    reciept_file = models.FileField(upload_to='recipet_files/')
