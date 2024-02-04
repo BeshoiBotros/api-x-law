@@ -7,6 +7,7 @@ def get_current_date():
     return date.today()
 
 class Subscribe(models.Model):
+    
     currency_choices = (('USD', 'United States dollar'), ('EUR', 'the Euro'), ('EGP', 'Egyptian pound'))
     name = models.CharField(max_length=255)
     nums_of_stuff = models.IntegerField(validators=[MinValueValidator(limit_value=1)])
@@ -20,6 +21,7 @@ class Subscribe(models.Model):
     subscribe_Type = models.TextField(null=True, blank=True)
 
 class SubscribeOrder(models.Model):
+
     requestStatusChoices = (('underProcess', 'تحت الاجراء'), ('accepted', 'مقبول'), ('rejected', 'مرفوض'), ('canceled', 'ملغي'), ('other', 'اخرى'))
     subscribe = models.ForeignKey(Subscribe, on_delete=models.CASCADE)
     companyuser = models.OneToOneField(Lawyer, on_delete=models.CASCADE,null=True, blank=True)
@@ -37,21 +39,15 @@ class SubscribeOrder(models.Model):
 
 class SubscribeContract(models.Model):
 
-    def get_default_price(self):
-        return self.subscribe_order.subscribe.price
-    
-    def get_default_stuff(self):
-        return self.subscribe_order.subscribe.nums_of_stuff
-
-    subscribe_order = models.ForeignKey(SubscribeOrder, models.CASCADE)
+    subscribe_order = models.OneToOneField(SubscribeOrder, models.CASCADE)
     subscribeContractStatusChoices = (('underProcess', 'جاري التعاقد'), ('paied', 'مدفوع'), ('unpaied', 'غير مدفوع'), ('canceled', 'ملغي'), ('rejected', 'مرفوض'), ('other', 'اخرى'))
     status_discription = models.TextField(null=True, blank=True)
     subscribe_contract_status = models.CharField(choices=subscribeContractStatusChoices, max_length=30, default='underProcess')
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
-    nums_of_users = models.IntegerField(default = get_default_stuff)
+    nums_of_users = models.IntegerField(null=True, blank=True)
     reciept_file = models.FileField(upload_to='recipet_files/', blank=True, null=True)
-    paied_amount = models.FloatField(default=get_default_price)
+    paied_amount = models.FloatField(null=True, blank=True)
     contract_file = models.FileField(upload_to='contractDiscription/', null=True, blank=True)
     contract_discription = models.TextField(null=True, blank=True)
     contract_aproval = models.BooleanField(default=False)

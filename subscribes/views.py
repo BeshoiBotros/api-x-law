@@ -10,24 +10,31 @@ from django.core.mail import send_mail
 from XLaw import settings
 from . import filters
 
+
 class SubscribeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
+
         if pk:
             subscribe_instance = shortcuts.object_is_exist(pk, models.Subscribe, "subscribe not found")
             if subscribe_instance.is_active:
                 subscribe_serializer = serializers.SubscribeSerializer(subscribe_instance)
                 return Response(subscribe_serializer.data, status=status.HTTP_200_OK)
+            
         subscribe_queryset = models.Subscribe.objects.filter(is_active=True)
         filterset = filters.SubscribeFilter(request.GET, queryset=subscribe_queryset)
+
         if filterset.is_valid():
             subscribe_queryset = filterset.qs
+
         subscribe_serializer = serializers.SubscribeSerializer(subscribe_queryset, many=True)
         return Response(subscribe_serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+
         can_add = shortcuts.check_permission('add_subscribe', request)
+        
         if can_add:
             serializer = serializers.SubscribeSerializer(data=request.data)
             if serializer.is_valid():
@@ -39,7 +46,9 @@ class SubscribeView(APIView):
             return Response({'message'  : 'you can not perform this action.'}, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, pk):
+        
         can_update = shortcuts.check_permission('change_subscribe', request)
+        
         if can_update:
             instance = shortcuts.object_is_exist(pk, models.Subscribe, "Subscribe not found.")
             serializer = serializers.SubscribeSerializer(instance=instance,data=request.data, partial=True)
@@ -52,7 +61,9 @@ class SubscribeView(APIView):
             return Response({'message'  : 'you can not perform this action.'}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
+        
         can_delete = shortcuts.check_permission('delete_subscribe', request)
+        
         if can_delete:
             instance = shortcuts.object_is_exist(pk, models.Subscribe, "Subscribe not found.")
             instance.delete()
@@ -61,9 +72,11 @@ class SubscribeView(APIView):
 
 
 class SubscribeOrderView(APIView):
+    
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
+        
         can_view = shortcuts.check_permission('view_subscribeorder', request)
         
         if pk:
@@ -79,15 +92,16 @@ class SubscribeOrderView(APIView):
             else:
                 queryset = models.SubscribeOrder.objects.filter(companyuser = request.user)
                 serialzier = serializers.SubscribeOrderSerializer(queryset, many=True)
+        
         return Response(serialzier.data)
         
     
     def post(self, request):
+        
         if request.user.is_lawyer:
             serializer_data = request.data.copy()
             serializer_data['companyuser'] = request.user
             serializer = serializers.SubscribeOrderSerializer(data=serializer_data)
-            validate_data = serializer.validated_data
             if serializer.is_valid():
                 instance = serializer.save()
                 send_mail(
@@ -109,12 +123,13 @@ class SubscribeOrderView(APIView):
             instance = shortcuts.object_is_exist(pk=pk, model=models.SubscribeOrder)
             serializer = serializers.SubscribeOrderSerializer(instance, data=request.data, partial=True)
             if serializer.is_valid():
+                validate_data = serializer.validated_data
                 serializer.save()
-                if instance.requestStatus == "accepted":
-                    subscribe_contract_data = {'subscribe_order' : instance.subscribe}
+                if validate_data.get('requestStatus') == "accepted":
+                    subscribe_contract_data = {'subscribe_order' : instance.pk}
                     subscribe_contract_serializer = serializers.SubscribeContractSerializer(data=subscribe_contract_data)
                     if subscribe_contract_serializer.is_valid():
-                        serializer.save()
+                        subscribe_contract_serializer.save()
                         send_mail(
                             "subscribe order",
                             "your subscribe order has been successfully accepted, please come to us to complate the contract",
@@ -122,7 +137,13 @@ class SubscribeOrderView(APIView):
                             [instance.companyuser.email],
                             fail_silently=False,
                         )
-                if instance.requestStatus == "rejected" or instance.requestStatus == "other":
+                if validate_data.get('requestStatus') == 'rejected' or validate_data.get('requestStatus') == 'other':
+                    try:
+                        contract_instance = models.SubscribeContract.objects.get(subscribe_order=instance.pk)
+                    except models.SubscribeContract.DoesNotExist:
+                        pass
+                    if contract_instance:
+                        contract_instance.delete()
                     send_mail(
                         "subscribe order",
                         "your subscribe order has been rejected, please check the description of subscribe order to know details.",
@@ -130,7 +151,6 @@ class SubscribeOrderView(APIView):
                         [instance.companyuser.email],
                         fail_silently=False,
                     )
-
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -138,34 +158,41 @@ class SubscribeOrderView(APIView):
             return Response({'message':'you do not have access to perform that action'}, status=status.HTTP_400_BAD_REQUEST)
         
     def delete(self, request, pk):
-        # to cancel the subscribe order
+        # to cancel the subscribe order or delete it
+        delete_it = request.data.get('delete', None)
         instance = shortcuts.object_is_exist(pk=pk, model=models.SubscribeOrder)
-        if instance.companyuser.pk == request.user.pk:
-            instance.requestStatus = "canceled"
-            instance.save()
-            send_mail(
-                "subscribe order",
-                "your subscribe order has been canceled",
-                settings.XLAW_EMAIL,
-                [instance.companyuser.email],
-                fail_silently=False,
-            )
-            return Response({'message' : 'subscribe order has been canceled successfuly'}, status=status.HTTP_200_OK)
-        else:
-            can_delete = shortcuts.check_permission('delete_subscribeorder', request)
-            if can_delete:
-                instance.requestStatus = "canceled"
-                instance.save()
+        can_delete = shortcuts.check_permission('delete_subscribeorder', request)
+        if (instance.companyuser.pk == request.user.pk):
+            if (instance.requestStatus != "rejected" and instance.requestStatus != "other" and instance.requestStatus != "canceled"):
+                if not delete_it:
+                    print(instance.requestStatus != "rejected" or instance.requestStatus != "other" or instance.requestStatus != "canceled")
+                    instance.requestStatus = "canceled"
+                    instance.save()
+                    send_mail(
+                        "subscribe order",
+                        "your subscribe order has been canceled",
+                        settings.XLAW_EMAIL,
+                        [instance.companyuser.email],
+                        fail_silently=False,
+                    )
+                    return Response({'message' : 'subscribe order has been canceled successfuly'}, status=status.HTTP_200_OK)
+                else:
+                    instance.delete()
+                    return Response({'message' : 'your order has been deleted successfully.'})
+            else:
+                return Response({'message' : 'your orderd already canceled.'})
+        elif can_delete:
+                instance.delete()
                 send_mail(
                     "subscribe order",
-                    "your subscribe order has been canceled",
+                    "your subscribe order has been deleted",
                     settings.XLAW_EMAIL,
                     [instance.companyuser.email],
                     fail_silently=False,
                 )
-                return Response({'message' : 'subscribe order has been canceled successfuly'}, status=status.HTTP_200_OK)
-            else:
-                return Response({'message' : 'you can only cancel your subscribe orders.'})
+                return Response({'message' : 'subscribe order has been deleted successfuly'}, status=status.HTTP_200_OK)
+        else:
+            return Response({'message' : 'you can only cancel your subscribe orders.'})
 
 class SubscribeContractView(APIView):
     permission_classes = [IsAuthenticated]
@@ -185,7 +212,8 @@ class SubscribeContractView(APIView):
                 serialzier = serializers.SubscribeContractSerializer(queryset, many=True)
                 return Response(serialzier.data, status=status.HTTP_200_OK)
             else:
-                queryset = models.SubscribeContract.objects.filter(subscribe_order__companyuser__id=request.user.pk)
+                queryset = models.SubscribeContract.objects.filter(subscribe_order__companyuser=request.user.pk)
+                print(queryset)
                 serializer = serializers.SubscribeContractSerializer(queryset, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             
@@ -210,7 +238,7 @@ class SubscribeContractView(APIView):
             serializer = serializers.SubscribeContractSerializer(instance, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                if (instance.subscribe_contract_status == "paied") and (instance.is_active == True) or (instance.is_active == True):
+                if (instance.subscribe_contract_status == "paied") and (instance.is_active == True):
                     send_mail(
                         "subscribe contract",
                         "your subscribe order has been successfully accepted, please check the description of subscribe contract to know details.",
@@ -230,6 +258,14 @@ class SubscribeContractView(APIView):
                     send_mail(
                         "subscribe contract",
                         "your subscribe contract is unpaid, please make sure to paid then upload the reciept file to activate your Organization.",
+                        settings.XLAW_EMAIL,
+                        [instance.subscribe_order.companyuser.email],
+                        fail_silently=False,
+                    )
+                if instance.subscribe_contract_status == "underProcess":
+                    send_mail(
+                        "subscribe contract",
+                        "your contract is underprocess we will check your data then asking you to complate the contract or cancel it",
                         settings.XLAW_EMAIL,
                         [instance.subscribe_order.companyuser.email],
                         fail_silently=False,
