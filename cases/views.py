@@ -107,11 +107,21 @@ class CaseView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
         
     def post(self, request):
-        pass
+        can_add_case = shortcuts.check_permission('add_case', request)
+        if can_add_case:
+            serializer = serializers.CaseSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message' : 'you can not perform this action.'})
 
     def patch(self, request, pk):
         can_update_case = shortcuts.check_permission('change_case', request)
         instance = shortcuts.object_is_exist(pk, models.Case, 'Case not found')
+        if instance.user.pk != request.user.pk:
+            return Response({'message' : 'only your cases you can update it.'})
         if can_update_case:
             serializer = serializers.CaseSerializer(instance=instance, data=request.data, partial=True)
             if serializer.is_valid():
