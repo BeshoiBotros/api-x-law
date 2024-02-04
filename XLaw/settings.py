@@ -63,6 +63,7 @@ MIDDLEWARE = [
 
 
 ROOT_URLCONF = 'XLaw.urls'
+INVISIBLE_APP_ENABLED = True
 
 TEMPLATES = [
     {
