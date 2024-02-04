@@ -6,17 +6,27 @@ from XLaw import shortcuts
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from . import filters
 
 class CategoryView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
+
         if pk:
             instance = shortcuts.object_is_exist(pk, models.Category, "Category not found")
             serializer = serializers.CategorySerializer(instance=instance)
             return Response(serializer.data, status=status.HTTP_200_OK)
+        
         queryset = models.Category.objects.all()
+        
+        filterset = filters.CategoryFilters(request.GET, queryset=queryset)
+        
+        if filterset.is_valid():
+            queryset = filterset.qs
+        
         serializer = serializers.CategorySerializer(queryset, many=True)
+        
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -74,6 +84,11 @@ class NewView(APIView):
         
         queryset = models.New.objects.all()
         
+        filterset = filters.CategoryFilters(request.GET, queryset=queryset)
+        
+        if filterset.is_valid():
+            queryset = filterset.qs
+
         serializer = serializers.NewSerializer(queryset, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -132,6 +147,11 @@ class CaseView(APIView):
         
         queryset = models.Case.objects.all()
         
+        filterset = filters.CategoryFilters(request.GET, queryset=queryset)
+        
+        if filterset.is_valid():
+            queryset = filterset.qs
+            
         serializer = serializers.CaseSerializer(queryset, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
