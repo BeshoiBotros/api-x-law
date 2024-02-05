@@ -4,14 +4,14 @@ from . import models
 class NewFilters(django_filters.FilterSet):
     class Meta:
         model = models.New
-        fields = '__all__'
+        fields = ['title', 'user', 'category', 'subject']
 
 class CaseFilters(django_filters.FilterSet):
     class Meta:
         model = models.Case
-        fields = '__all__'
+        fields = ['title', 'user', 'category', 'subject']
 
 class CategoryFilters(django_filters.FilterSet):
     class Meta:
         model = models.Category
-        fields = '__all__'
+        fields = ['name']

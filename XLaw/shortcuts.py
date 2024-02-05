@@ -8,7 +8,13 @@ def object_is_exist(pk, model, exception="object not found"):
         return model.objects.get(pk=pk)
     except model.DoesNotExist:
         raise ValidationError({'message' : f'{exception}'})
-    
+
+def object_is_exist_for_sockets(pk, model, error_method, exception="object not found"):
+    try:
+        return model.objects.get(pk=pk)
+    except:
+        error_method(exception)
+
 
 User = get_user_model()
 

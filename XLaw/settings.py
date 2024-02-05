@@ -33,6 +33,7 @@ CSRF_TRUSTED_ORIGINS = ['https://x-law.future-developers.cloud']
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
     'subscribes',
     'organizations',
     'cases',
+    'chatapp',
     'rest_framework_simplejwt.token_blacklist',
 ]
 
@@ -60,8 +62,16 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+ASGI_APPLICATION = "XLaw.asgi.application"
 
-
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}
 ROOT_URLCONF = 'XLaw.urls'
 INVISIBLE_APP_ENABLED = True
 
