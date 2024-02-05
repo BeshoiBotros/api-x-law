@@ -13,16 +13,16 @@ class ChatConsumer(WebsocketConsumer):
         if self.scope.get('user'):
             user_id = self.scope.get('user')['user_id']
             user = shortcuts.object_is_exist_for_sockets(user_id, models.CustomUser, self.send_error_message, "Authentication credentials were not provided.")
-            if not user:
-                self.close()
-                return
             self.user = user
-
+        else:
+            self.close()
+            return
 
         lawyer = shortcuts.object_is_exist_for_sockets(lawyer_id, models.CustomUser, self.send_error_message, "user not found")
         
         if lawyer.is_staff:
             self.send_error_message("only users such as lawyers, clients can chat them")
+            self.close()
             return
         
         if lawyer:
