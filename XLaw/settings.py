@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +26,6 @@ SECRET_KEY = 'django-insecure-dfqp&2x8gqcgk$f-^rl)ylg&(j36-cvl%i^pxj4qgt1!p7d42-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
 
 ALLOWED_HOSTS = ['x-law.future-developers.cloud', '127.0.0.1']
 CSRF_TRUSTED_ORIGINS = ['https://x-law.future-developers.cloud']
@@ -33,6 +33,7 @@ CSRF_TRUSTED_ORIGINS = ['https://x-law.future-developers.cloud']
 # Application definition
 
 INSTALLED_APPS = [
+    "whitenoise.runserver_nostatic",
     "daphne",
     'rest_framework',
     'django.contrib.admin',
@@ -55,6 +56,7 @@ AUTH_USER_MODEL = 'users.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -70,9 +72,11 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
             'hosts': [('127.0.0.1', 6380)],
-        },
-    },
+        }
+    }
 }
+
+
 ROOT_URLCONF = 'XLaw.urls'
 INVISIBLE_APP_ENABLED = True
 
@@ -151,9 +155,17 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+# STATICFILES_DIRS = [BASE_DIR / "static"]
+
+STATIC_URL = "/static/"
+STATIC_ROOT = "/home/x-law/static/"
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+MEDIA_ROOT = "/home/x-law/media/"
+MEDIA_URL = '/media/'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -171,8 +183,6 @@ SIMPLE_JWT = {
     "UPDATE_LAST_LOGIN": True,
 }
 
-MEDIA_ROOT = BASE_DIR / 'media'
-MEDIA_URL = '/media/'
 
 # config send_mails settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -183,3 +193,15 @@ EMAIL_HOST_PASSWORD = 'gkvp ywxh jpou jxko'
 EMAIL_USE_TLS = True
 
 XLAW_EMAIL = "xlaw@gmail.com"
+
+SWAGGER_SETTINGS = {
+    # Specify the authentication type for Swagger UI
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+        },
+    },
+}
+
