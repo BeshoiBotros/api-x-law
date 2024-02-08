@@ -138,7 +138,7 @@ class NewView(APIView):
 class CaseView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk):
+    def get(self, request, pk=None):
         
         if pk:
             instance = shortcuts.object_is_exist(pk, models.Case, "Case not found")
