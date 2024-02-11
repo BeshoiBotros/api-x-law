@@ -92,8 +92,8 @@ class LawyerRegistration(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CustomUserView(APIView):
+    
     permission_classes = [IsAuthenticated]
-
 
     def get(self, request, pk=None):
         if pk:

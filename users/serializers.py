@@ -53,7 +53,7 @@ class VerifyToken(serializers.ModelSerializer):
         return data
     
 class LawyerProfileSerializer(serializers.ModelSerializer):
-    lawyer = LawyerSerializer(read_onlu=True)
+    lawyer = LawyerSerializer(read_only=True)
     class Meta:
         model = models.LawyerProfile
         fields = ['id', 'image', 'lawyer']
