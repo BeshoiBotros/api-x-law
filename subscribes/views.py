@@ -9,7 +9,7 @@ from rest_framework import status
 from django.core.mail import send_mail
 from XLaw import settings
 from . import filters
-
+from drf_yasg.utils import swagger_auto_schema
 
 class SubscribeView(APIView):
     permission_classes = [IsAuthenticated]
@@ -31,6 +31,7 @@ class SubscribeView(APIView):
         subscribe_serializer = serializers.SubscribeSerializer(subscribe_queryset, many=True)
         return Response(subscribe_serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(request_body=serializers.SubscribeSerializer)
     def post(self, request):
 
         can_add = shortcuts.check_permission('add_subscribe', request)
@@ -45,6 +46,7 @@ class SubscribeView(APIView):
         else:
             return Response({'message'  : 'you can not perform this action.'}, status=status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(request_body=serializers.SubscribeSerializer)
     def patch(self, request, pk):
         
         can_update = shortcuts.check_permission('change_subscribe', request)
@@ -96,6 +98,7 @@ class SubscribeOrderView(APIView):
         return Response(serialzier.data)
         
     
+    @swagger_auto_schema(request_body=serializers.SubscribeOrderSerializer)
     def post(self, request):
         
         if request.user.is_lawyer:
@@ -116,7 +119,8 @@ class SubscribeOrderView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'message' : 'Only lawyers can perform this action.'})
-        
+    
+    @swagger_auto_schema(request_body=serializers.SubscribeOrderSerializer)
     def patch(self, request, pk):
         can_update = shortcuts.check_permission('change_subscribeorder', request)
         if can_update:
@@ -216,21 +220,23 @@ class SubscribeContractView(APIView):
                 print(queryset)
                 serializer = serializers.SubscribeContractSerializer(queryset, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            
-    # def post(self, request):
-    #     can_add = shortcuts.check_permission('add_subscribecontract', request)
-    #     if can_add:
-    #         serializer = serializers.SubscribeContractSerializer(data=request.data)
-    #         if serializer.is_valid():
-    #             instance = serializer.save()
-    #             company_user_email = instance.subscribe_order.companyuser.email
-    #             # need to complate ----------------------------------------------------------------
-    #             return Response(serializer.data, status=status.HTTP_200_OK)
-    #         else:
-    #             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #     else:
-    #         return Response({'message': 'you do not have access to perform that action'})
 
+    @swagger_auto_schema(request_body=serializers.SubscribeContractSerializer)    
+    def post(self, request):
+        can_add = shortcuts.check_permission('add_subscribecontract', request)
+        if can_add:
+            serializer = serializers.SubscribeContractSerializer(data=request.data)
+            if serializer.is_valid():
+                instance = serializer.save()
+                company_user_email = instance.subscribe_order.companyuser.email
+                # need to complate ----------------------------------------------------------------
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'message': 'you do not have access to perform that action'})
+
+    @swagger_auto_schema(request_body=serializers.SubscribeContractSerializer)
     def patch(self, request, pk):
         can_update = shortcuts.check_permission('change_subscribecontract', request)
         instance = shortcuts.object_is_exist(pk=pk, model=models.SubscribeContract)
