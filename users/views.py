@@ -10,8 +10,11 @@ from XLaw import settings
 from rest_framework import status
 from django.contrib.auth.models import Group
 import uuid
+from drf_yasg.utils import swagger_auto_schema
 
 class CustomUserEmail(APIView): # for making URLs to confirm emails
+
+    @swagger_auto_schema(request_body=serializers.CustomUserEmailSerializer)
     def post(self, request):
         serializer = serializers.CustomUserEmailSerializer(data=request.data)
         for_who = None
@@ -23,7 +26,7 @@ class CustomUserEmail(APIView): # for making URLs to confirm emails
             else:
                 for_who = 'client'
             confirmation_token = jwt.encode({'email' : validate_data.get('email'), 'uuid': str(uuid.uuid4())}, settings.SECRET_KEY, algorithm='HS256')
-            url_confirmation = f'http://127.0.0.1:8000/users/{for_who}/confirm-email/{confirmation_token}/' # we should replace that URL to the frontend url
+            url_confirmation = f'http://{settings.FRONTEND_HOST}/users/{for_who}/confirm-email/{confirmation_token}/' # we should replace that URL to the frontend url
             send_mail(
                 'Confirm your email for complate the registration',
                 f'click the following link to complate registration: {url_confirmation}',
@@ -36,6 +39,8 @@ class CustomUserEmail(APIView): # for making URLs to confirm emails
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 class ClientRegistration(APIView):
+
+    @swagger_auto_schema(request_body=serializers.ClientSerializer)
     def post(self, request, token):
         paylod = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         user_email = paylod['email']
@@ -58,6 +63,8 @@ class ClientRegistration(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LawyerRegistration(APIView):
+
+    @swagger_auto_schema(request_body=serializers.LawyerSerializer)
     def post(self, request, token):
         try:
             is_assestant = request.data.get('is_assestant', None)
@@ -87,6 +94,7 @@ class LawyerRegistration(APIView):
 class CustomUserView(APIView):
     permission_classes = [IsAuthenticated]
 
+
     def get(self, request, pk=None):
         if pk:
             instance = shortcuts.object_is_exist(pk=pk, model=models.CustomUser, exception="user does not exist")
@@ -96,6 +104,7 @@ class CustomUserView(APIView):
         serializer = serializers.CustomUserSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(request_body=serializers.CustomUserSerializer)
     def patch(self, request):
         user = request.user
         serializer = serializers.CustomUserSerializer(instance=user, data=request.data,partial=True)
@@ -104,6 +113,7 @@ class CustomUserView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors)
 
+    # but there is a problem here user can not make another account because his account only deactive not deleted so he can not make another registration using the same email
     def delete(self, request):
         user = request.user
         user.is_active = False
@@ -120,6 +130,7 @@ class LawyerProfileView(APIView):
         queryset = models.LawyerProfile.objects.all()
         serializer = serializers.LawyerProfileSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
     def patch(self, request):
         is_lawyer = request.user.is_lawyer
