@@ -161,7 +161,9 @@ class CaseView(APIView):
         can_add_case = shortcuts.check_permission('add_case', request)
         
         if can_add_case:
-            serializer = serializers.CaseSerializer(data=request.data)
+            serializer_data = request.data.copy()
+            serializer_data['user'] = request.user.pk
+            serializer = serializers.CaseSerializer(data=serializer_data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
