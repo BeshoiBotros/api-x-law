@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from . import models
-
+from users.serializers import CustomUserSerializer
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Category
@@ -9,9 +9,9 @@ class CategorySerializer(serializers.ModelSerializer):
 class NewSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.New
-        fields = '__all__'
+        fields = ['title', 'category', 'subject', 'user']
 
 class CaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Case
-        fields = '__all__'
+        fields = ['title', 'category', 'subject', 'user']

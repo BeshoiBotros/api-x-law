@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from . import filters
+from drf_yasg.utils import swagger_auto_schema
 
 class CategoryView(APIView):
     permission_classes = [IsAuthenticated]
@@ -28,7 +29,8 @@ class CategoryView(APIView):
         serializer = serializers.CategorySerializer(queryset, many=True)
         
         return Response(serializer.data, status=status.HTTP_200_OK)
-
+    
+    @swagger_auto_schema(request_body=serializers.CategorySerializer)
     def post(self, request):
         
         can_add_category = shortcuts.check_permission('add_category', request)
@@ -42,7 +44,8 @@ class CategoryView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         return Response({'message' : 'you can not perform this action.'}, status=status.HTTP_400_BAD_REQUEST)
-    
+
+    @swagger_auto_schema(request_body=serializers.CategorySerializer)
     def patch(self, request, pk):
         
         can_update_category = shortcuts.check_permission('change_category', request)
@@ -92,12 +95,15 @@ class NewView(APIView):
         serializer = serializers.NewSerializer(queryset, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
+    
+    @swagger_auto_schema(request_body=serializers.NewSerializer)
     def post(self, request):
         
         can_add_new = shortcuts.check_permission('add_new', request)
         
         if can_add_new:
+            serializer_data = request.data.copy()
+            serializer_data['user'] = request.user.pk
             serializer = serializers.NewSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
@@ -107,11 +113,15 @@ class NewView(APIView):
         
         return Response({'message' : 'you can not perform this action.'}, status=status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(request_body=serializers.NewSerializer)
     def patch(self, request, pk):
         
         can_update_new = shortcuts.check_permission('change_new', request)
         
         instance = shortcuts.object_is_exist(pk, models.New, 'New not found')
+        
+        if instance.user.pk != request.user.pk:
+            return Response({'message' : 'you can onky update your news'}, status=status.HTTP_400_BAD_REQUEST)
         
         if can_update_new:
             serializer = serializers.NewSerializer(instance=instance, data=request.data, partial=True)
@@ -122,14 +132,17 @@ class NewView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
         return Response({'message' : 'you can not perform this action.'}, status=status.HTTP_400_BAD_REQUEST)
+    
     def delete(self, request, pk):
         
         can_delete_new = shortcuts.check_permission('delete_new', request)
+
+        instance = shortcuts.object_is_exist(pk, models.New, "New not found")
+        
+        if instance.user.pk != request.user.pk:
+            return Response({'message' : 'you can only delete your news.'})
         
         if can_delete_new:
-            instance = shortcuts.object_is_exist(pk, models.New, "New not found")
-            if instance.user.pk is not request.user.pk:
-                return Response({'message' : 'you can only delete your news.'})
             instance.delete()
             return Response({'message' : 'the New has been deleted successfully.'}, status=status.HTTP_200_OK)
         
@@ -155,7 +168,8 @@ class CaseView(APIView):
         serializer = serializers.CaseSerializer(queryset, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-        
+    
+    @swagger_auto_schema(request_body=serializers.CaseSerializer)
     def post(self, request):
 
         can_add_case = shortcuts.check_permission('add_case', request)
@@ -171,15 +185,17 @@ class CaseView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
         return Response({'message' : 'you can not perform this action.'}, status=status.HTTP_400_BAD_REQUEST)
-
+    
+    @swagger_auto_schema(request_body=serializers.CaseSerializer)
     def patch(self, request, pk):
 
         can_update_case = shortcuts.check_permission('change_case', request)
         
         instance = shortcuts.object_is_exist(pk, models.Case, 'Case not found')
-        
+
         if instance.user.pk != request.user.pk:
             return Response({'message' : 'you can only update your cases.'})
+        
         if can_update_case:
             serializer = serializers.CaseSerializer(instance=instance, data=request.data, partial=True)
             if serializer.is_valid():
