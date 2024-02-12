@@ -13,7 +13,7 @@ class CustomUser(AbstractUser):
         if not self.pk or not self.password:
             self.set_password(self.password)
         super().save(*args, **kwargs)
-            
+
     def __str__(self):
         return self.username
 
@@ -34,7 +34,7 @@ class Client(CustomUser):
 
 
 class Lawyer(CustomUser):
-    
+
     class Meta:
         verbose_name = "LawyerUser"
 

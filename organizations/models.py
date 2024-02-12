@@ -19,7 +19,7 @@ class OrganizatioStuff(models.Model):
     end_date = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     notes = models.TextField(blank=True, null=True)
-    
+
 class PaymentMethod(models.Model):
     currency_choices = (('USD', 'United States dollar'), ('EUR', 'the Euro'), ('EGP', 'Egyptian pound'))
     name = models.CharField(blank=True, null=True, max_length=255)
