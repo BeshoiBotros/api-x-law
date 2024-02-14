@@ -21,7 +21,7 @@ class SubscribeView(APIView):
             if subscribe_instance.is_active:
                 subscribe_serializer = serializers.SubscribeSerializer(subscribe_instance)
                 return Response(subscribe_serializer.data, status=status.HTTP_200_OK)
-            
+
         subscribe_queryset = models.Subscribe.objects.filter(is_active=True)
         filterset = filters.SubscribeFilter(request.GET, queryset=subscribe_queryset)
 
@@ -35,7 +35,7 @@ class SubscribeView(APIView):
     def post(self, request):
 
         can_add = shortcuts.check_permission('add_subscribe', request)
-        
+
         if can_add:
             serializer = serializers.SubscribeSerializer(data=request.data)
             if serializer.is_valid():
@@ -48,9 +48,9 @@ class SubscribeView(APIView):
 
     @swagger_auto_schema(request_body=serializers.SubscribeSerializer)
     def patch(self, request, pk):
-        
+
         can_update = shortcuts.check_permission('change_subscribe', request)
-        
+
         if can_update:
             instance = shortcuts.object_is_exist(pk, models.Subscribe, "Subscribe not found.")
             serializer = serializers.SubscribeSerializer(instance=instance,data=request.data, partial=True)
@@ -63,9 +63,9 @@ class SubscribeView(APIView):
             return Response({'message'  : 'you can not perform this action.'}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        
+
         can_delete = shortcuts.check_permission('delete_subscribe', request)
-        
+
         if can_delete:
             instance = shortcuts.object_is_exist(pk, models.Subscribe, "Subscribe not found.")
             instance.delete()
@@ -74,13 +74,13 @@ class SubscribeView(APIView):
 
 
 class SubscribeOrderView(APIView):
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
-        
+
         can_view = shortcuts.check_permission('view_subscribeorder', request)
-        
+
         if pk:
             instance = shortcuts.object_is_exist(pk=pk, model=models.SubscribeOrder)
             if can_view or (instance.companyuser.pk == request.user.pk):
@@ -94,22 +94,22 @@ class SubscribeOrderView(APIView):
             else:
                 queryset = models.SubscribeOrder.objects.filter(companyuser = request.user)
                 serialzier = serializers.SubscribeOrderSerializer(queryset, many=True)
-        
+
         return Response(serialzier.data)
-        
-    
+
+
     @swagger_auto_schema(request_body=serializers.SubscribeOrderSerializer)
     def post(self, request):
-        
+
         if request.user.is_lawyer:
             serializer_data = request.data.copy()
             serializer_data['companyuser'] = request.user
-            serializer = serializers.SubscribeOrderSerializer(data=serializer_data)
+            serializer = serializers.SubscribeOrderSerializer(data=serializer_data) # ----------- Handel [Front-End]
             if serializer.is_valid():
                 instance = serializer.save()
                 send_mail(
                     "subscribe order",
-                    "your order is underprocess we will check your data then asking you to complate the contract or cancel it",
+                    "your order is underprocess we will check your data then asking you to complate the contract or cancel it", # ----------- Handel [Front-End]
                     settings.XLAW_EMAIL,
                     [request.user.email],
                     fail_silently=False,
@@ -119,7 +119,7 @@ class SubscribeOrderView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'message' : 'Only lawyers can perform this action.'})
-    
+
     @swagger_auto_schema(request_body=serializers.SubscribeOrderSerializer)
     def patch(self, request, pk):
         can_update = shortcuts.check_permission('change_subscribeorder', request)
@@ -160,7 +160,7 @@ class SubscribeOrderView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'message':'you do not have access to perform that action'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
     def delete(self, request, pk):
         # to cancel the subscribe order or delete it
         delete_it = request.data.get('delete', None)
@@ -221,7 +221,7 @@ class SubscribeContractView(APIView):
                 serializer = serializers.SubscribeContractSerializer(queryset, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=serializers.SubscribeContractSerializer)    
+    @swagger_auto_schema(request_body=serializers.SubscribeContractSerializer)
     def post(self, request):
         can_add = shortcuts.check_permission('add_subscribecontract', request)
         if can_add:
@@ -288,6 +288,7 @@ class SubscribeContractView(APIView):
                     instance.reciept_file = reciept_file
                     instance.nums_of_users = nums_of_users
                     instance.save()
+                    instance.subscribe_contract_status = 'underProcess'
                     return Response(serializers.SubscribeContractSerializer(instance).data, status=status.HTTP_200_OK)
                 else:
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -313,4 +314,4 @@ class SubscribeContractView(APIView):
             return Response({'message': 'instance has been deleted successfully'}, status=status.HTTP_200_OK)
         else:
             return Response({'message' : 'only admins and owners can perform this request.'})
-        
+
