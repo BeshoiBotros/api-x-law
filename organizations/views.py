@@ -73,8 +73,20 @@ class OrganizationStaffView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None):
-        pass
+    def get(self, request, pk=None, organization_pk=None):
+        if organization_pk:
+            organization = shortcuts.object_is_exist(organization_pk, models.Orgjanization, "Organization not found")
+            queryset = models.OrganizatioStuff.objects.filter(organization=organization)
+            serializer = serializers.OrganizatioStuffSerializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        if pk:
+            instance = shortcuts.object_is_exist(pk, models.OrganizatioStuff, 'organization nos found')
+            serializer = serializers.OrganizatioStuffSerializer(instance)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        queryset = models.OrganizatioStuff.objects.all()
+        serializer = serializers.OrganizatioStuffSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         pass
