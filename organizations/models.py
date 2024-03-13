@@ -3,7 +3,7 @@ from subscribes.models import SubscribeContract
 from users.models import Lawyer
 
 class Organization(models.Model):
-    name = models.CharField(max_length=255, null=False, blank=False, default='Big Lawyer')
+    name = models.CharField(max_length=255, null=False, blank=False, default='Big Lawyer', unique=True)
     user = models.OneToOneField(Lawyer, on_delete=models.CASCADE, null=False, blank=False)
     subscribe_contract = models.ForeignKey(SubscribeContract, on_delete=models.CASCADE, null=False, blank=False)
     address = models.CharField(max_length=255, null=True, blank=True)

@@ -18,11 +18,16 @@ class OrganizationView(APIView):
             serializer = serializers.OrganizationSerializer(instance)
             return Response(serializer.data, status=status.HTTP_200_OK)
         
+        
         queryset = models.Organization.objects.filter(subscribe_contract__is_active=True)
+        
         filter = filters.OrganizationFilter(request.GET, queryset=queryset)
+        
         if filter.is_valid():
             queryset = filter.qs
+        
         serializer = serializers.OrganizationSerializer(queryset, many=True)
+        
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -73,18 +78,27 @@ class OrganizationStaffView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None, organization_pk=None):
+        
         if organization_pk:
             organization = shortcuts.object_is_exist(organization_pk, models.Organization, "Organization not found")
             queryset = models.OrganizatioStuff.objects.filter(organization=organization)
             serializer = serializers.OrganizatioStuffSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
+        
         if pk:
-            instance = shortcuts.object_is_exist(pk, models.OrganizatioStuff, 'organization nos found')
+            instance = shortcuts.object_is_exist(pk, models.OrganizatioStuff, 'organization not found')
             serializer = serializers.OrganizatioStuffSerializer(instance)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         queryset = models.OrganizatioStuff.objects.all()
+        
+        filter = filters.OrganizationStaffFilter(request.GET, queryset=queryset)
+        
+        if filter.is_valid():
+            queryset = filter.qs
+        
         serializer = serializers.OrganizatioStuffSerializer(queryset, many=True)
+        
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
