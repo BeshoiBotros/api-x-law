@@ -2,9 +2,19 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from datetime import date
 from users.models import Lawyer
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 def get_current_date():
     return date.today()
+
+class Limit(models.Model):
+    number_of_object = models.PositiveIntegerField()
+    content_type = models.ForeignKey(ContentType, on_delete = models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
 
 class Subscribe(models.Model):
     
