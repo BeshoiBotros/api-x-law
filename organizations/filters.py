@@ -15,5 +15,5 @@ class OrganizationStaffFilter(django_filters.FilterSet):
     organization_name = django_filters.CharFilter(field_name='organization__name', lookup_expr='icontains')
     
     class Meta:
-        model = models.OrganizatioStuff
+        model = models.ObjectOwnership
         fields = '__all__'

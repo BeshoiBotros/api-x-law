@@ -2,16 +2,19 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.auth.hashers import make_password
 
 class CustomUser(AbstractUser):
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     is_client = models.BooleanField(default=False)
     is_lawyer = models.BooleanField(default=False)
+
     class Meta:
         verbose_name = 'CustomUser'
+    
     def save(self, *args, **kwargs):
         if not self.pk or not self.password:
-            self.set_password(self.password)
+            self.password = make_password(self.password)
         super().save(*args, **kwargs)
 
     def __str__(self):
