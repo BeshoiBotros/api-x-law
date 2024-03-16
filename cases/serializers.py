@@ -13,5 +13,5 @@ class NewSerializer(serializers.ModelSerializer):
 
 class CaseSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.Case
+        model = models.SolvedCase
         fields = ['title', 'category', 'subject', 'user']

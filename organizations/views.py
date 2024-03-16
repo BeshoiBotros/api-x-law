@@ -43,7 +43,7 @@ class OrganizationView(APIView):
 
     def patch(self, request, pk):
         can_add = shortcuts.check_permission('change_organization',request)
-        instance = shortcuts.object_is_exist(pk, models.Organization, "organizations not found")
+        instance = shortcuts.object_is_exist(pk, models.Organization, "organization not found")
         if can_add:
             serializer = serializers.OrganizationSerializer(instance, data=request.data, partial=True)
             if serializer.is_valid():
@@ -73,7 +73,7 @@ class OrganizationView(APIView):
             return Response({'message' : 'You can not perform this action'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class OrganizationStaffView(APIView):
+class ObjectOwnershipView(APIView):
 
     permission_classes = [IsAuthenticated]
 
@@ -81,16 +81,16 @@ class OrganizationStaffView(APIView):
         
         if organization_pk:
             organization = shortcuts.object_is_exist(organization_pk, models.Organization, "Organization not found")
-            queryset = models.OrganizatioStuff.objects.filter(organization=organization)
+            queryset = models.ObjectOwnership.objects.filter(organization=organization)
             serializer = serializers.OrganizatioStuffSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         
         if pk:
-            instance = shortcuts.object_is_exist(pk, models.OrganizatioStuff, 'organization not found')
+            instance = shortcuts.object_is_exist(pk, models.ObjectOwnership, 'organization not found')
             serializer = serializers.OrganizatioStuffSerializer(instance)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        queryset = models.OrganizatioStuff.objects.all()
+        queryset = models.ObjectOwnership.objects.all()
         
         filter = filters.OrganizationStaffFilter(request.GET, queryset=queryset)
         
@@ -116,7 +116,7 @@ class OrganizationStaffView(APIView):
         max_number_of_staff = contract.nums_of_users
         contract_is_active  = contract.is_active
         contract_approval   = contract.contract_aproval
-        organization_staff  = models.OrganizatioStuff.objects.filter(organization=org.pk).count()
+        organization_staff  = models.ObjectOwnership.objects.filter(organization=org.pk).count()
 
         if (organization_staff < max_number_of_staff) and (contract_is_active) and (contract_approval):
             serializer = serializers.OrganizatioStuffSerializer(request.data)

@@ -1,6 +1,8 @@
 from django.db import models
 from subscribes.models import SubscribeContract
 from users.models import Lawyer
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 class Organization(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False, default='Big Lawyer', unique=True)
@@ -12,14 +14,6 @@ class Organization(models.Model):
     email = models.EmailField(max_length=254, null=True, blank=True)
 
 
-class OrganizatioStuff(models.Model):
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
-    lawyer = models.ForeignKey(Lawyer, on_delete=models.CASCADE)
-    start_date = models.DateField(null=True, blank=True)
-    end_date = models.DateField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
-    notes = models.TextField(blank=True, null=True)
-
 class PaymentMethod(models.Model):
     currency_choices = (('USD', 'United States dollar'), ('EUR', 'the Euro'), ('EGP', 'Egyptian pound'))
     name = models.CharField(blank=True, null=True, max_length=255)
@@ -28,3 +22,10 @@ class PaymentMethod(models.Model):
     swift_number = models.CharField(blank=True, null=True, max_length=255)
     currency = models.CharField(choices=currency_choices, max_length = 10)
     discription = models.TextField(blank=True, null=True)
+
+
+class ObjectOwnership(models.Model):
+    organization   = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    object_id      = models.PositiveIntegerField()
+    content_type   = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    content_object = GenericForeignKey('content_type', 'object_id')

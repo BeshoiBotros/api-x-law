@@ -9,18 +9,19 @@ def get_current_date():
     return date.today()
 
 class Limit(models.Model):
+    
     number_of_object = models.PositiveIntegerField()
     content_type = models.ForeignKey(ContentType, on_delete = models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-
+ 
 class Subscribe(models.Model):
-    
+
     currency_choices = (('USD', 'United States dollar'), ('EUR', 'the Euro'), ('EGP', 'Egyptian pound'))
     name = models.CharField(max_length=255)
-    nums_of_stuff = models.IntegerField(validators=[MinValueValidator(limit_value=1)])
+    limits = models.ManyToManyField(Limit, null=True, blank=True)
     start_deuration = models.DateField(default=get_current_date)
     end_deuration = models.DateField(null = False, blank = False)
     is_free = models.BooleanField(default=False)

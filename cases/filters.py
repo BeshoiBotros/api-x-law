@@ -8,7 +8,7 @@ class NewFilters(django_filters.FilterSet):
 
 class CaseFilters(django_filters.FilterSet):
     class Meta:
-        model = models.Case
+        model = models.SolvedCase
         fields = ['title', 'user', 'category', 'subject']
 
 class CategoryFilters(django_filters.FilterSet):

@@ -8,7 +8,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
 
 class OrganizatioStuffSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.OrganizatioStuff
+        model = models.ObjectOwnership
         fields = '__all__'
 
 class PaymentMethodSerializer(serializers.ModelSerializer):
