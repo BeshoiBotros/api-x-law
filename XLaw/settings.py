@@ -26,9 +26,12 @@ SECRET_KEY = 'django-insecure-dfqp&2x8gqcgk$f-^rl)ylg&(j36-cvl%i^pxj4qgt1!p7d42-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-
+CORS_ALLOW_ALL_ORIGINS = True
 ALLOWED_HOSTS = ['x-law.future-developers.cloud', '127.0.0.1']
 CSRF_TRUSTED_ORIGINS = ['https://x-law.future-developers.cloud']
+CORS_ALLOWED_ORIGINS = [
+    "https://web-x-law.future-developers.cloud",
+]
 
 # Application definition
 
@@ -44,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework_simplejwt',
     'drf_yasg',
+    'corsheaders',
     'users',
     'subscribes',
     'organizations',
@@ -58,6 +62,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
