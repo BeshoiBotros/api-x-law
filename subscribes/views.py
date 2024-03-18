@@ -11,6 +11,80 @@ from XLaw import settings
 from . import filters
 from drf_yasg.utils import swagger_auto_schema
 
+
+class LimitView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        
+        can_view = shortcuts.check_permission(permission_name='view_limit', request=request)
+
+        if not can_view:
+            return Response({'message':'you can not perform this action'}, status=status.HTTP_403_FORBIDDEN)
+
+        if pk:
+            instance = shortcuts.object_is_exist(pk, models.Limit, 'This limit not found')
+            serializer = serializers.LimitSerializer(instance)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+
+        queryset = models.Limit.objects.all()
+        filter_set = filters.LimitFilter(request.GET, queryset)
+
+        if filter_set.is_valid():
+            queryset = filter_set.qs
+        
+        serializer = serializers.LimitSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(request_body=serializers.LimitSerializer)
+    def post(self, request):
+
+        can_add = shortcuts.check_permission('add_limit', request)
+
+        if not can_add:
+            return Response({'message' : 'you can not perform this action'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = serializers.LimitSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(request_body=serializers.LimitSerializer)
+    def patch(self, request, pk):
+        
+        can_update = shortcuts.check_permission('change_limit', request)
+
+        if not can_update:
+            return Response({'message' : 'you can not perform this action'}, status=status.HTTP_403_FORBIDDEN)
+
+        instance = shortcuts.object_is_exist(pk, models.Limit, 'This limit not found')
+
+        serializer = serializers.LimitSerializer(instance=instance, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    
+    def delete(self, request, pk):
+        
+        can_delete = shortcuts.check_permission('delete_limit', request)
+
+        if not can_delete:
+            return Response({'message' : 'you can not perform this action'}, status=status.HTTP_403_FORBIDDEN)
+
+        instance = shortcuts.object_is_exist(pk, models.Limit, 'This limit not found')
+
+        instance.delete()
+
+        return Response({'message' : 'limit deleted successfully'}, status=status.HTTP_200_OK)
+
 class SubscribeView(APIView):
     permission_classes = [IsAuthenticated]
 

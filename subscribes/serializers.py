@@ -20,3 +20,8 @@ class SubscribeOrderSerializer(serializers.ModelSerializer):
 class SubscribeContractDetailsSerializer(serializers.Serializer):
     reciept_file = serializers.FileField(required = True)
     nums_of_users = serializers.IntegerField(required = True)
+
+class LimitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Limit
+        fields = '__all__'
