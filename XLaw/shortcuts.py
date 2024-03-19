@@ -8,7 +8,8 @@ from subscribes import models as subscribes_models
 from django.db.models import Model
 from organizations import models as organization_models
 
-def object_is_exist(pk, model: Model, exception="object not found"):
+
+def object_is_exist(pk, model, exception="object not found"):
     try:
         return model.objects.get(pk=pk)
     except model.DoesNotExist:
@@ -68,6 +69,12 @@ def can_add_organization_objects(content_type_pk, request):
         return False
 
 
-    
 
-    
+def get_obj_by_kwargs(model: Model, **kwargs):
+    model_ = model.objects.get()
+    try:
+        model
+        for key, val in kwargs.items():
+            setattr(model_, key, val)
+    except model.DoesNotExist:
+        return Response({'message' : '404 not found'}, status=status.HTTP_404_NOT_FOUND)

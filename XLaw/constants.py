@@ -10,9 +10,9 @@ from subscribes import serializers as subscribe_serializers
 
 MODEL_TO_SERIALIZER = {
 
-    organization_models.ObjectOwnership : organization_serializers.OwnershipSerializer,
-    organization_models.Organization    : organization_serializers.OrganizationSerializer,
-    organization_models.PaymentMethod   : organization_serializers.PaymentMethodSerializer,
+    # organization_models.ObjectOwnership : organization_serializers.OwnershipSerializer,
+    # organization_models.Organization    : organization_serializers.OrganizationSerializer,
+    # organization_models.PaymentMethod   : organization_serializers.PaymentMethodSerializer,
 
     user_models.Client : user_serializer.ClientSerializer,
     user_models.Lawyer : user_serializer.LawyerSerializer,

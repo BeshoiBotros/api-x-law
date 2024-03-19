@@ -1,12 +1,14 @@
 from django.db import models
 from subscribes.models import SubscribeContract
-from users.models import Lawyer
+from users.models import Lawyer, CustomUser
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 class Organization(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False, default='Big Lawyer', unique=True)
-    user = models.OneToOneField(Lawyer, on_delete=models.CASCADE, null=False, blank=False)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, null=False, blank=False)
     subscribe_contract = models.ForeignKey(SubscribeContract, on_delete=models.CASCADE, null=False, blank=False)
     address = models.CharField(max_length=255, null=True, blank=True)
     phone_number = models.CharField(max_length=16, null=True, blank=True)
@@ -30,3 +32,13 @@ class ObjectOwnership(models.Model):
     content_type   = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     content_object = GenericForeignKey('content_type', 'object_id')
 
+###################
+#     signals     #
+###################
+@receiver(pre_delete)
+def delete_related_object_ownership(sender, instance, **kwargs):
+    """
+    Signal handler to delete related ObjectOwnership instances when a content object is deleted.
+    """
+    content_type = ContentType.objects.get_for_model(instance)
+    ObjectOwnership.objects.filter(content_type=content_type, object_id=instance.pk).delete()
