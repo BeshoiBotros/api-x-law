@@ -6,11 +6,17 @@ from XLaw import shortcuts
 from rest_framework.response import Response
 from . import filters
 from rest_framework import status
+from django.contrib.contenttypes.models import ContentType
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from django.apps import apps
+from XLaw import constants
 
 class OrganizationView(APIView):
     
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(methods=['get'])
     def get(self, request, pk=None):
 
         if pk:
@@ -30,6 +36,7 @@ class OrganizationView(APIView):
         
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(request_body=serializers.OrganizationSerializer)
     def post(self, request):
         can_add = shortcuts.check_permission('add_organization',request)
         if can_add:
@@ -41,6 +48,7 @@ class OrganizationView(APIView):
         else:
             return Response({'message' : 'You can not perform this action'}, status=status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(request_body=serializers.OrganizationSerializer)
     def patch(self, request, pk):
         can_add = shortcuts.check_permission('change_organization',request)
         instance = shortcuts.object_is_exist(pk, models.Organization, "organization not found")
@@ -63,6 +71,7 @@ class OrganizationView(APIView):
 
         return Response({'message' : 'You can not perform this action'})
 
+    @swagger_auto_schema(methods=['delete'])
     def delete(self, request, pk):
         can_add = shortcuts.check_permission('delete_organization',request)
         instance = shortcuts.object_is_exist(pk, models.Organization, "organizations not found")
@@ -77,6 +86,7 @@ class ObjectOwnershipView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(method='get')
     def get(self, request, pk=None, organization_pk=None):
         
         if organization_pk:
@@ -92,7 +102,7 @@ class ObjectOwnershipView(APIView):
 
         queryset = models.ObjectOwnership.objects.all()
         
-        filter = filters.OrganizationStaffFilter(request.GET, queryset=queryset)
+        filter = filters.ObjectOwnershipFilter(request.GET, queryset=queryset)
         
         if filter.is_valid():
             queryset = filter.qs
@@ -101,33 +111,43 @@ class ObjectOwnershipView(APIView):
         
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request):
+    @swagger_auto_schema(request_body=openapi.Schema(type=openapi.TYPE_OBJECT))
+    def post(self, request, content_type_pk):
         
-        try:
-            org = models.Organization.objects.get(user=request.user.pk)
-        except:
-            return Response({'message':'You do not have organization yet'}, status.HTTP_404_NOT_FOUND)
+        can_add_object = shortcuts.can_add_organization_objects(content_type_pk, request)
+        content_type_instance = shortcuts.object_is_exist(content_type_pk, ContentType, 'Content not founded')
         
-        contract = org.subscribe_contract
-        
-        if not contract:
-            return Response({'message' : 'you do not have a contract file yet'}, status=status.HTTP_404_NOT_FOUND)
-        
-        max_number_of_staff = contract.nums_of_users
-        contract_is_active  = contract.is_active
-        contract_approval   = contract.contract_aproval
-        organization_staff  = models.ObjectOwnership.objects.filter(organization=org.pk).count()
+        org = models.Organization.objects.get(user=request.user.pk)
 
-        if (organization_staff < max_number_of_staff) and (contract_is_active) and (contract_approval):
-            serializer = serializers.OrganizatioStuffSerializer(request.data)
-            if serializer.is_valid():
-                return Response(serializer.data, status=status.HTTP_200_OK)
+        if not can_add_object:
+            return Response({'message' : f'you reach your limit to add {content_type_instance}'})
+        
+        model = apps.get_model(app_label=content_type_instance.app_label, model_name=content_type_instance.model)
+
+        serializer_class = constants.MODEL_TO_SERIALIZER.get(model)
+        object_serializer = serializer_class(data=request.data)
+
+        if object_serializer.is_valid():
+            
+            obj_instance = object_serializer.save()
+            
+            data = {
+                'organization' : org.pk,
+                'object_id' : obj_instance.pk,
+                'content_type' : content_type_instance.pk,
+            }
+            
+            ownership_serializer = serializers.OwnershipSerializer(data=data)
+            
+            if ownership_serializer.is_valid():
+                return Response(ownership_serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'message':'Please review your subscription and contract'}, status=status.HTTP_403_FORBIDDEN)
+                obj_instance.delete()
+                return Response(ownership_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        return Response(object_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+    @swagger_auto_schema(request_body=openapi.Schema(type=openapi.TYPE_OBJECT))
     def patch(self, request, pk):
         
         try:
@@ -147,7 +167,7 @@ class ObjectOwnershipView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-
+    @swagger_auto_schema(method='delete')
     def delete(self, request, pk):
 
         try:

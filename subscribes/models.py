@@ -12,8 +12,6 @@ class Limit(models.Model):
     
     number_of_object = models.PositiveIntegerField()
     content_type = models.ForeignKey(ContentType, on_delete = models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    content_object = GenericForeignKey('content_type', 'object_id')
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
  

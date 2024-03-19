@@ -29,3 +29,4 @@ class ObjectOwnership(models.Model):
     object_id      = models.PositiveIntegerField()
     content_type   = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     content_object = GenericForeignKey('content_type', 'object_id')
+

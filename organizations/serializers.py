@@ -6,7 +6,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
         model = models.Organization
         fields = '__all__'
 
-class OrganizatioStuffSerializer(serializers.ModelSerializer):
+class OwnershipSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ObjectOwnership
         fields = '__all__'
