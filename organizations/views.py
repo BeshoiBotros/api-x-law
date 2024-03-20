@@ -160,27 +160,40 @@ class ObjectOwnershipView(APIView):
             return Response({'message' : 'Organization Not foundes'}, status=status.HTTP_404_NOT_FOUND)
 
         if ownership_object.organization.pk is not org.pk:
-            return Response({'message' : 'you can only update only your ownership'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'message' : 'you can only update your ownership'}, status=status.HTTP_403_FORBIDDEN)
 
-        serializer = serializers.OrganizationSerializer(instance=org)
-        return Response(serializer.data)
+        model_class = ownership_object.content_object.__class__
+        model_serializer = constants.MODEL_TO_SERIALIZER.get(model_class)
+
+        if not model_serializer:
+            return Response({'message' : 'Not Found 404'}, status=status.HTTP_404_NOT_FOUND)
+
+        object_serializer = model_serializer(instance=ownership_object.content_object, data=request.data, partial=True)
+
+        if object_serializer.is_valid():
+            instance = object_serializer.save()
+            ownership_serializer = serializers.OwnershipSerializer(instance=ownership_object)
+            return Response(ownership_serializer.data)
+        
+        return Response(object_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @swagger_auto_schema(method='delete')
     def delete(self, request, pk):
 
+        ownership_object = get_object_or_404(models.ObjectOwnership, id=pk)
+
         try:
             org = models.Organization.objects.get(user=request.user.pk)
-        except:
-            return Response({'message':'You do not have organization yet'}, status.HTTP_404_NOT_FOUND)
-        
-        staff_member = shortcuts.object_is_exist(pk, models.OrganizatioStuff, 'staff member not found')
-        
-        if staff_member.organization.pk != org.pk:
-            return Response({'message':'you can only updadte you staff'}, status=status.HTTP_403_FORBIDDEN)
-        
-        staff_member.delete()
-        return Response({'message' : 'Staff member has been deleted successfully'}, status=status.HTTP_200_OK)
+        except models.Organization.DoesNotExist:
+            return Response({'message' : 'Organization Not foundes'}, status=status.HTTP_404_NOT_FOUND)
 
+        if ownership_object.organization.pk is not org.pk:
+            return Response({'message' : 'you can only delete your ownership'}, status=status.HTTP_403_FORBIDDEN)
+
+        ownership_object.content_object.delete()
+        ownership_object.delete()
+
+        return Response({'message' : 'Ownership deleted successfully'}, status=status.HTTP_200_OK)
 
 
 class PaymentMethodView(APIView):

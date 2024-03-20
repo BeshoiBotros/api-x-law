@@ -52,6 +52,9 @@ class Lawyer(CustomUser):
 class LawyerProfile(models.Model):
     lawyer = models.OneToOneField(Lawyer, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='profiles/', blank=True, null=True, default='profiles/default-user.jpg')
+    experience = models.TextField(blank=True, null=True)
+    experience_years = models.IntegerField(null=True, blank=True)
+    bio = models.TextField(blank=True, null=True)
 
 class VerifyToken(models.Model):
     token = models.CharField(max_length=255)

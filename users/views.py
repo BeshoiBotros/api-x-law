@@ -105,7 +105,7 @@ class CustomUserView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(request_body=serializers.CustomUserSerializer)
-    def patch(self, request):
+    def patch(self, request, pk=None):
         user = request.user
         serializer = serializers.CustomUserSerializer(instance=user, data=request.data,partial=True)
         if serializer.is_valid():
@@ -131,6 +131,7 @@ class LawyerProfileView(APIView):
         serializer = serializers.LawyerProfileSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    # get profile using Lawyer pk
 
     def patch(self, request):
         is_lawyer = request.user.is_lawyer
