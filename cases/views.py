@@ -74,6 +74,23 @@ class CategoryView(APIView):
         
         return Response({'message' : 'you can not perform this action.'}, status=status.HTTP_400_BAD_REQUEST)
 
+class SubCategoryView(APIView):
+    
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None):
+        pass
+
+    def post(self, request):
+        pass
+
+    def patch(self, request, pk):
+        pass
+
+    def delete(self, request):
+        pass
+
+
 
 class NewView(APIView):
     permission_classes = [IsAuthenticated]
@@ -148,8 +165,7 @@ class NewView(APIView):
         
         return Response({'message' : 'you can not perform this action.'}, status=status.HTTP_400_BAD_REQUEST)
 
-class CaseView(APIView):
-    permission_classes = [IsAuthenticated]
+class SolvedCaseView(APIView):
 
     def get(self, request, pk=None):
         
@@ -171,6 +187,10 @@ class CaseView(APIView):
     
     @swagger_auto_schema(request_body=serializers.CaseSerializer)
     def post(self, request):
+        
+        is_Auth = shortcuts.isAuth(request)
+        if not is_Auth:
+            return Response({'message' : 'User not Found'}, status=status.HTTP_404_NOT_FOUND)
 
         can_add_case = shortcuts.check_permission('add_case', request)
         
@@ -189,6 +209,10 @@ class CaseView(APIView):
     @swagger_auto_schema(request_body=serializers.CaseSerializer)
     def patch(self, request, pk):
 
+        is_Auth = shortcuts.isAuth(request)
+        if not is_Auth:
+            return Response({'message' : 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
         can_update_case = shortcuts.check_permission('change_case', request)
         
         instance = shortcuts.object_is_exist(pk, models.Case, 'Case not found')
@@ -207,7 +231,11 @@ class CaseView(APIView):
         return Response({'message' : 'you can not perform this action.'}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-
+        
+        is_Auth = shortcuts.isAuth(request)
+        if not is_Auth:
+            return Response({'message' : 'User not Found'}, status=status.HTTP_404_NOT_FOUND)
+        
         can_delete_case = shortcuts.check_permission('delete_case', request)
         
         if can_delete_case:
@@ -219,3 +247,32 @@ class CaseView(APIView):
         
         return Response({'message' : 'you can not perform this action.'}, status=status.HTTP_400_BAD_REQUEST)
 
+
+class CaseView(APIView):
+
+    def get(self, request, pk=None, user_pk=None):
+        pass
+
+    def post(self, request):
+        pass
+
+    def patch(self, request, pk):
+        pass
+
+    def delete(self, request, pk):
+        pass
+
+
+class CaseInvitation(APIView):
+
+    def get(self, request, pk=None, user_pk=None):
+        pass
+
+    def post(self, request):
+        pass
+
+    def patch(self, request, pk):
+        pass
+
+    def delete(self, request, pk):
+        pass

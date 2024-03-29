@@ -13,6 +13,9 @@ class Organization(models.Model):
     url = models.URLField(null=True, blank=True)
     email = models.EmailField(max_length=254, null=True, blank=True)
 
+    def __str__(self) -> str:
+        return f'{self.name}'
+
 
 class PaymentMethod(models.Model):
     currency_choices = (('USD', 'United States dollar'), ('EUR', 'the Euro'), ('EGP', 'Egyptian pound'))
@@ -22,6 +25,10 @@ class PaymentMethod(models.Model):
     swift_number = models.CharField(blank=True, null=True, max_length=255)
     currency = models.CharField(choices=currency_choices, max_length = 10)
     discription = models.TextField(blank=True, null=True)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f'{self.organization.name} : {self.name}'
 
 
 class ObjectOwnership(models.Model):
@@ -29,3 +36,6 @@ class ObjectOwnership(models.Model):
     object_id      = models.PositiveIntegerField()
     content_type   = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     content_object = GenericForeignKey('content_type', 'object_id')
+
+    def __str__(self) -> str:
+        return f'{self.content_type.model} : {self.organization.name}'

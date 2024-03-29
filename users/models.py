@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.hashers import make_password
+from django.core.exceptions import ValidationError
 
 class CustomUser(AbstractUser):
     phone_number = models.CharField(max_length=15, blank=True, null=True)
@@ -13,12 +14,12 @@ class CustomUser(AbstractUser):
         verbose_name = 'CustomUser'
     
     def save(self, *args, **kwargs):
-        if not self.pk or not self.password:
-            self.password = make_password(self.password)
+        self.password = make_password(self.password)
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.username
+
 
 
 class Client(CustomUser):
@@ -37,7 +38,8 @@ class Client(CustomUser):
 
 
 class Lawyer(CustomUser):
-
+    rate = models.PositiveIntegerField(default=0)
+    
     class Meta:
         verbose_name = "LawyerUser"
 
@@ -48,6 +50,11 @@ class Lawyer(CustomUser):
 
     def __str__(self):
         return super().username
+
+    def clean(self):
+        if self.rate < 0 or self.rate > 5:
+            raise ValidationError("Rate must be between 0:5")
+        return super().clean()
 
 class LawyerProfile(models.Model):
     lawyer = models.OneToOneField(Lawyer, on_delete=models.CASCADE)

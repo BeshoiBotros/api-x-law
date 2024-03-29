@@ -14,6 +14,12 @@ class Limit(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete = models.CASCADE)
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
+
+    def __str__(self) -> str:
+        desc = ''
+        if len(self.description) < 20:
+            return f"{self.title}: {self.description}"
+        return f"{self.title}: {self.description}...."
  
 class Subscribe(models.Model):
 
@@ -28,6 +34,9 @@ class Subscribe(models.Model):
     is_active = models.BooleanField(default=False)
     description = models.TextField(blank=False, null=True)
     subscribe_Type = models.TextField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f'{self.name}'
 
 class SubscribeOrder(models.Model):
 
@@ -46,6 +55,9 @@ class SubscribeOrder(models.Model):
     requestStatus = models.CharField(choices=requestStatusChoices, max_length=30, default='underProcess')
     statusDiscription = models.TextField(null=True, blank=True)
 
+    def __str__(self) -> str:
+        return f'{self.companyuser.username} Order, company: {self.companyName}'
+
 class SubscribeContract(models.Model):
 
     subscribe_order = models.OneToOneField(SubscribeOrder, models.CASCADE)
@@ -61,4 +73,7 @@ class SubscribeContract(models.Model):
     contract_discription = models.TextField(null=True, blank=True)
     contract_aproval = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return f'{self.subscribe_order.companyuser.username} Contract, Company: {self.subscribe_order.companyName}'
 

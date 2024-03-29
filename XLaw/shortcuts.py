@@ -78,3 +78,12 @@ def get_obj_by_kwargs(model: Model, **kwargs):
             setattr(model_, key, val)
     except model.DoesNotExist:
         return Response({'message' : '404 not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+def isAuth(request):
+    try:
+        user = request.user
+        UsersModels.CustomUser.objects.get(pk = user.id)
+        return True
+    except User.DoesNotExist:
+        return False

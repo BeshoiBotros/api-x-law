@@ -200,7 +200,7 @@ class PaymentMethodView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None):
+    def get(self, request, pk=None, organization_pk=None):
         pass
 
     def post(self, request):
