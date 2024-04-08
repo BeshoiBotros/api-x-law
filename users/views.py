@@ -11,11 +11,13 @@ from rest_framework import status
 from django.contrib.auth.models import Group
 import uuid
 from drf_yasg.utils import swagger_auto_schema
+from django.http import HttpRequest
+from django.shortcuts import get_object_or_404
 
 class CustomUserEmail(APIView): # for making URLs to confirm emails
 
     @swagger_auto_schema(request_body=serializers.CustomUserEmailSerializer)
-    def post(self, request):
+    def post(self, request: HttpRequest):
         serializer = serializers.CustomUserEmailSerializer(data=request.data)
         for_who = None
         if serializer.is_valid():
@@ -41,7 +43,7 @@ class CustomUserEmail(APIView): # for making URLs to confirm emails
 class ClientRegistration(APIView):
 
     @swagger_auto_schema(request_body=serializers.ClientSerializer)
-    def post(self, request, token):
+    def post(self, request: HttpRequest, token):
         paylod = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         user_email = paylod['email']
         serializer_data = {**request.data}
@@ -65,7 +67,7 @@ class ClientRegistration(APIView):
 class LawyerRegistration(APIView):
 
     @swagger_auto_schema(request_body=serializers.LawyerSerializer)
-    def post(self, request, token):
+    def post(self, request: HttpRequest, token):
         try:
             is_assestant = request.data.get('is_assestant', None)
         except:
@@ -93,11 +95,11 @@ class LawyerRegistration(APIView):
 
 class CustomUserView(APIView):
     
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk=None):
+    def get(self, request: HttpRequest, pk=None):
         if pk:
-            instance = shortcuts.object_is_exist(pk=pk, model=models.CustomUser, exception="user does not exist")
+            instance = get_object_or_404(models.CustomUser,id=pk)
             serializer = serializers.CustomUserSerializer(instance)
             return Response(serializer.data)
         queryset = models.CustomUser.objects.filter(is_staff=False)
@@ -105,7 +107,13 @@ class CustomUserView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(request_body=serializers.CustomUserSerializer)
-    def patch(self, request, pk=None):
+    def patch(self, request: HttpRequest, pk=None):
+        
+        is_auth = shortcuts.isAuth(request)
+
+        if not is_auth:
+            return Response({'detail' : 'Authentication credentials were not provided.'})
+
         user = request.user
         serializer = serializers.CustomUserSerializer(instance=user, data=request.data,partial=True)
         if serializer.is_valid():
@@ -114,15 +122,25 @@ class CustomUserView(APIView):
         return Response(serializer.errors)
 
     # but there is a problem here user can not make another account because his account only deactive not deleted so he can not make another registration using the same email
-    def delete(self, request):
-        user = request.user
-        user.is_active = False
-        return Response({"message":"user has been deleted successfully"}, status=status.HTTP_200_OK)
+    # def delete(self, request):
+    #     user = request.user
+    #     user.is_active = False
+    #     return Response({"message":"user has been deleted successfully"}, status=status.HTTP_200_OK)
 
 class LawyerProfileView(APIView):
-    permission_classes = [ IsAuthenticated ]
+    # permission_classes = [ IsAuthenticated ]
 
-    def get(self, request, pk=None):
+    def get(self, request: HttpRequest, pk=None, user_pk=None):
+        if user_pk:
+            user = get_object_or_404(models.CustomUser, id=user_pk)
+            
+            try:
+                user_profile = models.LawyerProfile.objects.get(lawyer=user)
+            except models.LawyerProfile.DoesNotExist:
+                return Response({'message' : 'That user Does not have a profile yet!'}, status=status.HTTP_404_NOT_FOUND)
+            
+            serializer = serializers.LawyerProfileSerializer(user_profile)
+            return Response(serializer.data)
         if pk:
             instance = shortcuts.object_is_exist(pk=pk, model=models.LawyerProfile, exception="that profile not found")
             serializer = serializers.LawyerProfileSerializer(instance)
@@ -133,7 +151,13 @@ class LawyerProfileView(APIView):
 
     # get profile using Lawyer pk
 
-    def patch(self, request):
+    def patch(self, request: HttpRequest):
+
+        is_auth = shortcuts.isAuth(request)
+        
+        if not is_auth:
+            return Response({'detail' : 'Authentication credentials were not provided.'})
+        
         is_lawyer = request.user.is_lawyer
         if is_lawyer:
             lawyer_profile_instance = models.LawyerProfile.objects.get(lawyer = request.user.pk)
