@@ -101,7 +101,7 @@ class LimitView(APIView):
         return Response({'message' : 'limit deleted successfully'}, status=status.HTTP_200_OK)
 
 class SubscribeView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request, pk=None):
 
@@ -123,6 +123,11 @@ class SubscribeView(APIView):
     @swagger_auto_schema(request_body=serializers.SubscribeSerializer)
     def post(self, request):
 
+        is_auth = shortcuts.isAuth(request)
+
+        if not is_auth:
+            return Response({'message' : 'Authentication credentials were not provided.'})
+
         can_add = shortcuts.check_permission('add_subscribe', request)
 
         if can_add:
@@ -138,6 +143,11 @@ class SubscribeView(APIView):
     @swagger_auto_schema(request_body=serializers.SubscribeSerializer)
     def patch(self, request, pk):
 
+        is_auth = shortcuts.isAuth(request)
+
+        if not is_auth:
+            return Response({'message' : 'Authentication credentials were not provided.'})
+
         can_update = shortcuts.check_permission('change_subscribe', request)
 
         if can_update:
@@ -152,6 +162,11 @@ class SubscribeView(APIView):
             return Response({'message'  : 'you can not perform this action.'}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
+
+        is_auth = shortcuts.isAuth(request)
+
+        if not is_auth:
+            return Response({'message' : 'Authentication credentials were not provided.'})
 
         can_delete = shortcuts.check_permission('delete_subscribe', request)
 
