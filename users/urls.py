@@ -11,5 +11,6 @@ urlpatterns = [
     path('operations/<int:pk>/', views.CustomUserView.as_view()),
     path('operations/', views.CustomUserView.as_view()),
     path('profiles/profile/<int:pk>/', views.LawyerProfileView.as_view()),
+    path('profiles/profile/lawyer/<int:user_pk>/', views.LawyerProfileView.as_view()),
     path('profiles/profile/', views.LawyerProfileView.as_view()),
 ]

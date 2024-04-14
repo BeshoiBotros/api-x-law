@@ -142,6 +142,7 @@ class LawyerProfileView(APIView):
             
             serializer = serializers.LawyerProfileSerializer(user_profile)
             return Response(serializer.data)
+        
         if pk:
             instance = shortcuts.object_is_exist(pk=pk, model=models.LawyerProfile, exception="that profile not found")
             serializer = serializers.LawyerProfileSerializer(instance)
