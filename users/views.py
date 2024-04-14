@@ -131,6 +131,7 @@ class LawyerProfileView(APIView):
     # permission_classes = [ IsAuthenticated ]
 
     def get(self, request: HttpRequest, pk=None, user_pk=None):
+        
         if user_pk:
             user = get_object_or_404(models.Lawyer, id=user_pk)
             
