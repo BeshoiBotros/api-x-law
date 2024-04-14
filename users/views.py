@@ -132,7 +132,7 @@ class LawyerProfileView(APIView):
 
     def get(self, request: HttpRequest, pk=None, user_pk=None):
         if user_pk:
-            user = get_object_or_404(models.CustomUser, id=user_pk)
+            user = get_object_or_404(models.Lawyer, id=user_pk)
             
             try:
                 user_profile = models.LawyerProfile.objects.get(lawyer=user)
