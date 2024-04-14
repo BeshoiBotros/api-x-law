@@ -14,7 +14,7 @@ from drf_yasg.utils import swagger_auto_schema
 
 class LimitView(APIView):
 
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         
@@ -40,11 +40,6 @@ class LimitView(APIView):
 
     @swagger_auto_schema(request_body=serializers.LimitSerializer)
     def post(self, request):
-        
-        is_auth = shortcuts.isAuth(request)
-
-        if not is_auth:
-            return Response({'message' : 'Authentication credentials were not provided.'})
 
         can_add = shortcuts.check_permission('add_limit', request)
 
@@ -60,11 +55,6 @@ class LimitView(APIView):
 
     @swagger_auto_schema(request_body=serializers.LimitSerializer)
     def patch(self, request, pk):
-        
-        is_auth = shortcuts.isAuth(request)
-
-        if not is_auth:
-            return Response({'message' : 'Authentication credentials were not provided.'})
 
         can_update = shortcuts.check_permission('change_limit', request)
 
@@ -83,11 +73,6 @@ class LimitView(APIView):
 
     
     def delete(self, request, pk):
-        
-        is_auth = shortcuts.isAuth(request)
-
-        if not is_auth:
-            return Response({'message' : 'Authentication credentials were not provided.'})
 
         can_delete = shortcuts.check_permission('delete_limit', request)
 
