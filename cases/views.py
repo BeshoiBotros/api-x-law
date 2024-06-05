@@ -95,10 +95,16 @@ class SubCategoryView(APIView):
 class NewView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, pk):
+    def get(self, request, pk=None):
         
         if pk:
             instance = shortcuts.object_is_exist(pk, models.New, "New not found")
+            
+            try:
+                user_profile = None
+            except:
+                return Response({'detail':'profile not found'}, status=status.HTTP_404_NOT_FOUND)
+            
             serializer = serializers.NewSerializer(instance=instance)
             return Response(serializer.data, status=status.HTTP_200_OK)
         

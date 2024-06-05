@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-dfqp&2x8gqcgk$f-^rl)ylg&(j36-cvl%i^pxj4qgt1!p7d42-
 DEBUG = True
 
 CORS_ALLOW_ALL_ORIGINS = True
-ALLOWED_HOSTS = ['x-law.future-developers.cloud', '127.0.0.1']
+ALLOWED_HOSTS = ['x-law.future-developers.cloud', '127.0.0.1', 'api-x-law.future-developers.cloud']
 CSRF_TRUSTED_ORIGINS = ['https://x-law.future-developers.cloud']
 CORS_ALLOWED_ORIGINS = [
     "https://web-x-law.future-developers.cloud",
@@ -169,11 +169,11 @@ USE_TZ = True
 # STATICFILES_DIRS = [BASE_DIR / "static"]
 
 STATIC_URL = "/static/"
-STATIC_ROOT = "/home/x-law/static/"
+STATIC_ROOT = "/home/api-x-law/static/"
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-MEDIA_ROOT = "/home/x-law/media/"
+MEDIA_ROOT = "/home/api-x-law/media/"
 MEDIA_URL = '/media/'
 
 
